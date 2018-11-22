@@ -1,0 +1,301 @@
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<dom-module id='code-coverage'>
+  <script>
+  (function() {
+    'use strict'
+
+    let coveragePlugin;
+
+    // Used to store data related to coverage.
+    let coverageData = {
+      // Used to store the fetched and processed uncovered lines.
+      uncoveredLines: null,
+
+      // Used to track the current setTimeout() call to fetch coverage data.
+      updateTimeoutId: null,
+
+      // Change info.
+      host: null,
+      project: null,
+      change: null,
+      patchset: null,
+    };
+
+    // Css class for coverage annotations.
+    const ANNOTATION_CSS = Gerrit.css('background-color: #EF9B9B');
+
+    // Url of the service from which to fetch coverage data.
+    const REQUEST_BASE_URL =
+      'https://findit-for-me.appspot.com/coverage/api/coverage-data';
+
+    // Used to fetch coverage data asynchronously with exponential backoff.
+    const START_SLEEP_TIME_MS = 1 * 1000;
+    const MAX_SLEEP_TIME_MS = 5 * 60 * 1000;
+
+    // Used to identify host that is running on canary. This is needed because
+    // even though the host name starts with 'canary-', when constructing the
+    // url to make request to fetch coverage data, the 'host' parameter in the
+    // query is expected to not contain the 'canary-' prefix.
+    const CANARY_HOST_PREFIX = 'canary-';
+
+    // Regex used to match the URL path of a Gerrit change view or diff view.
+    // Project, change number, patchset number (optional) are required to
+    // present in order to match.
+    // e.g. '/c/chromium/src/+/1330995/12/base/unguessable_token.cc'.
+    // e.g. '/c/chromium/src/+/1330995/12'.
+    const DIFF_VIEW_URL_PATTERN = /^\/c\/(.+)\/\+\/(\d+)(?:\/(\d+))?(?:\/.+)?$/;
+
+    /**
+     * Gets and fills infos of the current change such as change number.
+     *
+     * This function is no-op if the current page is neither a change view page
+     * nor a diff view page.
+     */
+    async function getAndFillChangeInfo() {
+      coverageData.host = window.location.host;
+      if (coverageData.host.startsWith(CANARY_HOST_PREFIX)) {
+        coverageData.host =
+          coverageData.host.substring(CANARY_HOST_PREFIX.length);
+      }
+      const match = DIFF_VIEW_URL_PATTERN.exec(window.location.pathname);
+      if (!match) {
+        console.log('Fail to parse change info from url for code coverage.');
+        return;
+      }
+
+      coverageData.project = match[1];
+      coverageData.change = match[2];
+
+      if (match[3]) {
+        coverageData.patchset = match[3];
+        return;
+      }
+
+      // Current page is the change view instead of diff view, so get patchset
+      // number via an endpoint request.
+      const url = '/changes/' + encodeURIComponent(coverageData.project) + '~' +
+                  coverageData.change +
+                  '/detail?o=CURRENT_REVISION&o=ALL_REVISIONS';
+      coveragePlugin.restApi().get(url).then((change) => {
+        const currentRevision = change.current_revision;
+        coverageData.patchset = change.revisions[currentRevision]._number;
+      }).catch((err) => {
+        console.log('Failed to get change details for code coverage:', err);
+      });
+    }
+
+    /**
+     * The format of the response fetched from the server is the same as the
+     * following example, and the format is flexible enough to be extended to
+     * contain additional information such as branch coverage, and how many
+     *  times each line is covered on different platforms.
+     *
+     * {
+     *   "data": {
+     *     "files": [
+     *       {
+     *         "path": "base/task/task_scheduler/priority_queue_unittest.cc",
+     *         "lines": [
+     *           {
+     *             "line": 168,
+     *             "count": 10
+     *           },
+     *           {
+     *             "line": 170,
+     *             "count": 0
+     *           },
+     *           {
+     *             "line": 171,
+     *             "count": 0
+     *           }
+     *         ]
+     *       }
+     *     ]
+     *   }
+     * }
+     *
+     * @return {Promise} Resolves to parsed JSON response body if the coverage
+     * data is successfully retrieved, otherwise, resolves to null.
+     */
+    async function fetchCoverageData() {
+      if (!coverageData.host || !coverageData.project ||
+          !coverageData.change || !coverageData.patchset) {
+        throw 'Need retry, change info is unavailable yet for code coverage.';
+      }
+
+      // Project is not part of the query because change number is unique across
+      // different projects under the same host.
+      const requestQuery =
+        `?host=${coverageData.host}&project=${coverageData.project}&` +
+        `change=${coverageData.change}&patchset=${coverageData.patchset}&` +
+        `format=json&concise=1`;
+      const url = REQUEST_BASE_URL + requestQuery;
+      const response = await fetch(url);
+
+      const responseJson = await response.json();
+      if (responseJson.error) {
+        console.error('Parse code coverage response body to JSON returned ' +
+                      'error: ', responseJson.error);
+        return null;
+      }
+
+      if (response.status == 404 &&
+          responseJson.is_project_supported == false) {
+        console.warn(coverageData.project,
+                     ' project is not supported for code coverage.');
+        return null;
+      }
+
+      if (!response.ok) {
+        throw `Need retry, request code coverage data returned http ` +
+              `${response.status}.`;
+      }
+
+      return responseJson;
+    }
+
+    /**
+     * Parses and validates the JSON response.
+     *
+     * @param {Object} responseJson The JSON response of coverage data.
+     * @return {Object} Returns information of the uncovered lines if the JSON
+     *                  response has valid format, otherwise, returns null.
+     */
+    function parseAndValidateCoverageData(responseJson) {
+      if (!responseJson.data) {
+        console.error('Invalid code coverage response format. ' +
+                      'Expecting "data" in ', responseJson);
+        return;
+      }
+
+      const responseData = responseJson.data;
+      if (!responseData.files) {
+        console.error('Invalid code coverage response format. ' +
+                      'Expecting "files" in ', responseData);
+        return;
+      }
+
+      const responseFiles = responseData.files;
+      const uncoveredLines = {};
+      for (var i = 0; i < responseFiles.length; i++) {
+        const responseFile = responseFiles[i];
+        if (!responseFile.path || !responseFile.lines) {
+          console.error('Invalid code coverage response format. ' +
+                        'Expecting "path" and "lines" in ', responseFile);
+          return;
+        }
+
+        uncoveredLines[responseFile.path] = new Set();
+        const responseLines = responseFile.lines
+        for (var j = 0; j < responseLines.length; j++) {
+          const responseLine = responseLines[j];
+          if (!responseLine.line || responseLine.count == null) {
+            console.error('Invalid code coverage response format. ' +
+                          'Expecting "line" and "count" in ', responseLine);
+            return;
+          }
+
+          if (responseLine.count == 0) {
+            uncoveredLines[responseFile.path].add(responseLine.line);
+          }
+        }
+      }
+
+      return uncoveredLines;
+    }
+
+    /**
+     * Repeatedly fetch coverage data in an exponential backoff manner.
+     *
+     * @param {number} sleepTime Number of milliseconds to wait before next try.
+     */
+    async function checkAndAnnotateCoverageData(sleepTime) {
+      let responseJson = null;
+      try {
+        responseJson = await fetchCoverageData();
+      } catch (err) {
+        console.log(err, `Will try fetching code coverage data again after ` +
+                         `${sleepTime}ms.`);
+        coverageData.updateTimeoutId = window.setTimeout(function () {
+            checkAndAnnotateCoverageData(sleepTime);
+          },
+          sleepTime);
+
+        if (Math.random() >= 0.8) {
+          sleepTime = START_SLEEP_TIME_MS;
+        } else {
+          sleepTime = Math.min(MAX_SLEEP_TIME_MS, 2 * sleepTime);
+        }
+
+        return;
+      }
+
+      if (!responseJson) {
+        return;
+      }
+
+      coverageData.uncoveredLines = parseAndValidateCoverageData(responseJson);
+      if (coverageData.uncoveredLines) {
+        console.log('Code coverage data is ready to be rendered.');
+      }
+    }
+
+    /**
+     * Reload coverage data.
+     *
+     * This method is triggered in the following two scenarios:
+     * 1. When the user first goes to a change view or diff view page.
+     * 2. When the user goes from one change/patch to another change/patch.
+     */
+    function reloadCoverageData() {
+      if (coverageData.updateTimeoutId) {
+        window.clearTimeout(coverageData.updateTimeoutId);
+      }
+
+      coverageData = {};
+      getAndFillChangeInfo();
+      checkAndAnnotateCoverageData(START_SLEEP_TIME_MS);
+    }
+
+    Gerrit.install(function(plugin) {
+      coveragePlugin = plugin;
+      let annotationApi = coveragePlugin.annotationApi();
+      annotationApi.addLayer(context => {
+        if (!coverageData.host || !coverageData.project ||
+            !coverageData.change || !coverageData.patchset) {
+          return;
+        }
+
+        if (coverageData.change != context.changeNum ||
+            coverageData.patchset != context.patchNum) {
+          console.log(`The diff view has changed from ` +
+                      `${coverageData.change}/${coverageData.patchset} ` +
+                      `to ${context.changeNumber}/${context.patchNum}, ` +
+                      `code coverage data will be reloaded.`);
+          reloadCoverageData();
+          return;
+        }
+
+        if (!coverageData.uncoveredLines) {
+          return;
+        }
+
+        const path = context.path;
+        const line = context.line;
+        if (coverageData.uncoveredLines[path] &&
+            coverageData.uncoveredLines[path].has(line.afterNumber)) {
+          context.annotateRange(0, line.text.length, ANNOTATION_CSS, 'right');
+        }
+      });
+
+      reloadCoverageData();
+      coveragePlugin.on('showchange', reloadCoverageData);
+    });
+  })();
+  </script>
+</dom-module>
