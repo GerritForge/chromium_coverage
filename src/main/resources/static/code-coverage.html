@@ -151,6 +151,12 @@ found in the LICENSE file.
         return null;
       }
 
+      if (response.status == 500 &&
+          responseJson.is_service_enabled == false) {
+        console.warn('Code coverage service is temporarily disabled.');
+        return null;
+      }
+
       if (!response.ok) {
         throw `Need retry, request code coverage data returned http ` +
               `${response.status}.`;
