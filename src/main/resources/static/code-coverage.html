@@ -128,8 +128,6 @@ found in the LICENSE file.
         throw 'Need retry, change info is unavailable yet for code coverage.';
       }
 
-      // Project is not part of the query because change number is unique across
-      // different projects under the same host.
       const requestQuery =
         `?host=${coverageData.host}&project=${coverageData.project}&` +
         `change=${coverageData.change}&patchset=${coverageData.patchset}&` +
@@ -225,19 +223,18 @@ found in the LICENSE file.
       try {
         responseJson = await fetchCoverageData();
       } catch (err) {
-        console.log(err, `Will try fetching code coverage data again after ` +
-                         `${sleepTime}ms.`);
-        coverageData.updateTimeoutId = window.setTimeout(function () {
-            checkAndAnnotateCoverageData(sleepTime);
-          },
-          sleepTime);
-
         if (Math.random() >= 0.8) {
           sleepTime = START_SLEEP_TIME_MS;
         } else {
           sleepTime = Math.min(MAX_SLEEP_TIME_MS, 2 * sleepTime);
         }
 
+        coverageData.updateTimeoutId = window.setTimeout(function () {
+            checkAndAnnotateCoverageData(sleepTime);
+          },
+          sleepTime);
+        console.log(err, `Will try fetching code coverage data again after ` +
+                         `${sleepTime}ms.`);
         return;
       }
 
@@ -248,6 +245,8 @@ found in the LICENSE file.
       coverageData.uncoveredLines = parseAndValidateCoverageData(responseJson);
       if (coverageData.uncoveredLines) {
         console.log('Code coverage data is ready to be rendered.');
+      } else {
+        console.error('Invalid code coverage response data format.');
       }
     }
 
