@@ -2,4 +2,4 @@
 
 ## To use with the local testsite
 
-ln -s /path/to/code-coverage.html plugins/
+ln -s /path/to/chromium-coverage.html plugins/
