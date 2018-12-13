@@ -26,9 +26,6 @@ found in the LICENSE file.
       patchset: null,
     };
 
-    // Css class for coverage annotations.
-    const ANNOTATION_CSS = Gerrit.css('background-color: #EF9B9B');
-
     // Url of the service from which to fetch coverage data.
     const REQUEST_BASE_URL =
       'https://findit-for-me.appspot.com/coverage/api/coverage-data';
@@ -268,6 +265,9 @@ found in the LICENSE file.
     }
 
     Gerrit.install(function(plugin) {
+      // Css class for coverage annotations.
+      const ANNOTATION_CSS = Gerrit.css('background-color: #EF9B9B');
+
       coveragePlugin = plugin;
       let annotationApi = coveragePlugin.annotationApi();
       annotationApi.addLayer(context => {
