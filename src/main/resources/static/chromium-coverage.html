@@ -41,11 +41,17 @@ found in the LICENSE file.
     const CANARY_HOST_PREFIX = 'canary-';
 
     // Regex used to match the URL path of a Gerrit change view or diff view.
-    // Project, change number, patchset number (optional) are required to
-    // present in order to match.
-    // e.g. '/c/chromium/src/+/1330995/12/base/unguessable_token.cc'.
-    // e.g. '/c/chromium/src/+/1330995/12'.
-    const DIFF_VIEW_URL_PATTERN = /^\/c\/(.+)\/\+\/(\d+)(?:\/(\d+))?(?:\/.+)?$/;
+    // Project, change number and patchset number (optional) are required to
+    // present in order to match. The URL can be in any of the following forms:
+    // '/c/chromium/src/+/1369646'
+    // '/c/chromium/src/+/1369646/'
+    // '/c/chromium/src/+/1369646/3'
+    // '/c/chromium/src/+/1369646/3/'
+    // '/c/chromium/src/+/1369646/3/base/base/test.cc'
+    // '/c/chromium/src/+/1369646/3/base/base/test.cc/'
+    // Where the patchset number can also be replaced with '3..4'.
+    const GERRIT_URL_PATTERN =
+        /^\/c\/(.+)\/\+\/(\d+)\/?(?:(?:\d+\.\.)?(\d+)\/?)?.*$/;
 
     /**
      * Gets and fills infos of the current change such as change number.
@@ -59,7 +65,8 @@ found in the LICENSE file.
         coverageData.host =
           coverageData.host.substring(CANARY_HOST_PREFIX.length);
       }
-      const match = DIFF_VIEW_URL_PATTERN.exec(window.location.pathname);
+
+      const match = GERRIT_URL_PATTERN.exec(window.location.pathname);
       if (!match) {
         console.log('Fail to parse change info from url for code coverage.');
         return;
