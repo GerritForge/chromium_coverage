@@ -278,11 +278,10 @@ found in the LICENSE file.
 
         if (coverageData.change != context.changeNum ||
             coverageData.patchset != context.patchNum) {
-          console.log(`The diff view has changed from ` +
-                      `${coverageData.change}/${coverageData.patchset} ` +
-                      `to ${context.changeNumber}/${context.patchNum}, ` +
-                      `code coverage data will be reloaded.`);
-          reloadCoverageData();
+          // When switching from one patchset to another one, the annotation
+          // layers of both the old and new patchsets are notified, so this
+          // special condition is required to avoid the annotations of the old
+          // patchset being incorrectly applied to the new patchset.
           return;
         }
 
