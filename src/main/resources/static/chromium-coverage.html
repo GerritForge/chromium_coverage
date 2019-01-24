@@ -240,10 +240,10 @@ found in the LICENSE file.
      * 2. When the user goes from one change/patch to another change/patch,
      *    triggered by the 'showchange' event.
      *
-     * @param {ChangeInfo} Info of the current change. Null if triggered by
-     *    plugin installation.
-     * @param {RevisionInfo} Info of the current revision. Null if triggered by
-     *    plugin installation.
+     * @param {ChangeInfo} change Info of the current change. Null if triggered
+     *    by plugin installation.
+     * @param {RevisionInfo} revision Info of the current revision. Null if
+     *    triggered by plugin installation.
      */
     function reloadCoverageData(change, revision) {
       console.log('About to reload coverage data', change, revision);
