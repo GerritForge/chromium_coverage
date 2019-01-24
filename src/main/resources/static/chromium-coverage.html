@@ -54,43 +54,20 @@ found in the LICENSE file.
         /^\/c\/(.+)\/\+\/(\d+)\/?(?:(?:\d+\.\.)?(\d+)\/?)?.*$/;
 
     /**
-     * Gets and fills infos of the current change such as change number.
+     * Parses the url and returns current project, change and patchset.
      *
-     * This function is no-op if the current page is neither a change view page
-     * nor a diff view page.
+     * @return {List} Returns a list of 3 strings: project, change number and
+     *                patchset number if the url matches the url pattern of
+     *                side by side diff view, otherwise returns null.
      */
-    async function getAndFillChangeInfo() {
-      coverageData.host = window.location.host;
-      if (coverageData.host.startsWith(CANARY_HOST_PREFIX)) {
-        coverageData.host =
-          coverageData.host.substring(CANARY_HOST_PREFIX.length);
-      }
+    function parseGerritURLForSideBySideDiffView() {
+        const match = GERRIT_URL_PATTERN.exec(window.location.pathname);
+        if (!match || ! match[1] || !match[2] || !match[3]) {
+          return null;
+        }
 
-      const match = GERRIT_URL_PATTERN.exec(window.location.pathname);
-      if (!match) {
-        console.log('Fail to parse change info from url for code coverage.');
-        return;
-      }
-
-      coverageData.project = match[1];
-      coverageData.change = match[2];
-
-      if (match[3]) {
-        coverageData.patchset = match[3];
-        return;
-      }
-
-      // Current page is the change view instead of diff view, so get patchset
-      // number via an endpoint request.
-      const url = '/changes/' + encodeURIComponent(coverageData.project) + '~' +
-                  coverageData.change +
-                  '/detail?o=CURRENT_REVISION&o=ALL_REVISIONS';
-      coveragePlugin.restApi().get(url).then((change) => {
-        const currentRevision = change.current_revision;
-        coverageData.patchset = change.revisions[currentRevision]._number;
-      }).catch((err) => {
-        console.log('Failed to get change details for code coverage:', err);
-      });
+        // Current view is at the side by side diff view.
+        return [match[1], match[2], match[3]]
     }
 
     /**
@@ -258,16 +235,71 @@ found in the LICENSE file.
      * Reload coverage data.
      *
      * This method is triggered in the following two scenarios:
-     * 1. When the user first goes to a change view or diff view page.
-     * 2. When the user goes from one change/patch to another change/patch.
+     * 1. When the user first goes to a change view or diff view page, triggered
+     *    by plugin installation.
+     * 2. When the user goes from one change/patch to another change/patch,
+     *    triggered by the 'showchange' event.
+     *
+     * @param {ChangeInfo} Info of the current change. Null if triggered by
+     *    plugin installation.
+     * @param {RevisionInfo} Info of the current revision. Null if triggered by
+     *    plugin installation.
      */
-    function reloadCoverageData() {
+    function reloadCoverageData(change, revision) {
+      console.log('About to reload coverage data', change, revision);
+
       if (coverageData.updateTimeoutId) {
         window.clearTimeout(coverageData.updateTimeoutId);
       }
 
       coverageData = {};
-      getAndFillChangeInfo();
+
+      coverageData.host = window.location.host;
+      if (coverageData.host.startsWith(CANARY_HOST_PREFIX)) {
+        coverageData.host =
+          coverageData.host.substring(CANARY_HOST_PREFIX.length);
+      }
+
+      if (change && revision) {
+        // Current view is at the change view and it is triggered by the
+        // 'showchange' event.
+        coverageData.project = change.project;
+        coverageData.change = change._number;
+        coverageData.patchset = revision._number;
+      } else {
+        // Current view could be at dashboard view, change view or side by side
+        // diff view, and it is triggered by the plugin installation.
+        // In this case, we only care about the side by side view because
+        // dashboard view is not associated with any change, and change view
+        // will be handled by the other branch.
+        const match = parseGerritURLForSideBySideDiffView();
+        if (!match) {
+          console.log('Fail to parse change info from url for code coverage.');
+          return;
+        }
+
+        coverageData.project = match[0];
+        coverageData.change = match[1];
+        coverageData.patchset = match[2];
+      }
+
+      if (!coverageData.host) {
+        console.warn('coverageData host is missing unexpectedly');
+        return;
+      }
+      if (!coverageData.project) {
+        console.warn('coverageData project is missing unexpectedly.');
+        return;
+      }
+      if (!coverageData.change) {
+        console.warn('coverageData change is missing unexpectedly');
+        return;
+      }
+      if (!coverageData.patchset) {
+        console.warn('coverageData patchset is missing unexpectedly');
+        return;
+      }
+
       checkAndAnnotateCoverageData(START_SLEEP_TIME_MS);
     }
 
@@ -304,7 +336,7 @@ found in the LICENSE file.
         }
       });
 
-      reloadCoverageData();
+      reloadCoverageData(null, null);
       coveragePlugin.on('showchange', reloadCoverageData);
     });
   })();
