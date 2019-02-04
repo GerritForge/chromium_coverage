@@ -330,7 +330,8 @@ found in the LICENSE file.
 
         const path = context.path;
         const line = context.line;
-        if (coverageData.uncoveredLines[path] &&
+        if (line.type === 'add' && // Only highlights added lines.
+            coverageData.uncoveredLines[path] &&
             coverageData.uncoveredLines[path].has(line.afterNumber)) {
           context.annotateRange(0, line.text.length, ANNOTATION_CSS, 'right');
         }
