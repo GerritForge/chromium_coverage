@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+<title>chromium-coverage.js test</title>
+
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<script src="../bower_components/web-component-tester/browser.js"></script>
+<script src="../src/main/resources/static/coverage.js"></script>
+
+<test-fixture id="coverage-fixture">
+  <template>
+    <chromium-coverage></chromium-coverage>
+  </template>
+</test-fixture>
+
+<script>
+  suite('<code coverage>', () => {
+
+    // Sample coverage data fetched from coverage serviced; used for testing.
+    const sampleCoverageData = {
+      'data': {
+        'files': [
+          {
+            'path': 'base/test.cc',
+            'lines': [
+              {
+                'line': 10,
+                'count': 10,
+              },
+              {
+                'line': 11,
+                'count': 0,
+              },
+              {
+                'line': 12,
+                'count': 0,
+              },
+            ]
+          }
+        ]
+      }
+    }
+
+    // Sample coverage ranges that match with the sample coverage data.
+    const sampleCoverageRanges = {
+      'base/test.cc': [
+        {
+          'side': 'right',
+          'type': 'COVERED',
+          'code_range': {
+            'start_line': 10,
+            'end_line': 10,
+          }
+        },
+        {
+          'side': 'right',
+          'type': 'NOT_COVERED',
+          'code_range': {
+            'start_line': 11,
+            'end_line': 12,
+          }
+        },
+      ]
+    }
+
+    setup(() => {
+      coverageClient = new window.CoverageClient();
+      sinon.stub(window, 'fetch');
+    });
+
+    teardown(() => {
+      window.fetch.restore();
+    });
+
+    test('get normalized host', () => {
+      assert.equal('chromium-review.googlesource.com',
+                   coverageClient.getNormalizedHost(
+                      'chromium-review.googlesource.com'));
+      assert.equal('chromium-review.googlesource.com',
+                   coverageClient.getNormalizedHost(
+                      'canary-chromium-review.googlesource.com'));
+    });
+
+    test('parse project name from gerrit url', () => {
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646'));
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646'));
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646/3'));
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646/3/'));
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646/3/base/test.cc'));
+      assert.equal('chromium/src',
+                   coverageClient.parseProjectFromPathName(
+                      '/c/chromium/src/+/1369646/3/base/base/test.cc/'));
+    });
+
+    test('fetch coverage data', async () => {
+      const response = new window.Response(JSON.stringify(sampleCoverageData),
+                                           { status: 200 });
+      window.fetch.returns(Promise.resolve(response));
+      const responseJson = await coverageClient.fetchCoverageJsonData(
+        'chromium-review.googlesource.com', 'chromium/src', 12345, 2);
+      assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
+                   'coverage-data?host=chromium-review.googlesource.com&' +
+                   'project=chromium/src&change=12345&patchset=2&format=json&' +
+                   'concise=1',
+                   window.fetch.getCall(0).args[0]);
+      assert.deepEqual(sampleCoverageData, responseJson);
+    });
+
+    test('parse coverage ranges', () => {
+      const coverageRanges =
+          coverageClient.convertResponseJsonToCoverageRanges(
+              sampleCoverageData);
+      assert.deepEqual(sampleCoverageRanges, coverageRanges);
+    });
+
+    test('coverage data is cached', async () => {
+      sinon.stub(coverageClient, 'getNormalizedHost');
+      sinon.stub(coverageClient, 'parseProjectFromPathName');
+      sinon.stub(coverageClient, 'fetchCoverageJsonData');
+      coverageClient.getNormalizedHost.returns(
+          'chromium-review.googlesource.com');
+      coverageClient.parseProjectFromPathName.returns('chromium/src');
+
+      coverageClient.coverageData.coverageRanges = sampleCoverageRanges;
+      coverageClient.coverageData.host =
+          'chromium-review.googlesource.com';
+      coverageClient.coverageData.project = 'chromium/src';
+      coverageClient.coverageData.changeNum = 12345;
+      coverageClient.coverageData.patchNum = 2;
+      coverageClient.dataFetchingPromise = new Promise(
+          function(resolve, reject) {
+            resolve(sampleCoverageRanges);
+      });
+      const providedData = await coverageClient.provideCoverageData(
+          12345, 'base/test.cc', 'PARENT', 2);
+      assert.equal(false, coverageClient.fetchCoverageJsonData.called);
+      assert.deepEqual(sampleCoverageRanges['base/test.cc'], providedData);
+
+      coverageClient.getNormalizedHost.restore();
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.fetchCoverageJsonData.restore();
+    });
+
+    test('coverage data is not cached', async () => {
+      sinon.stub(coverageClient, 'getNormalizedHost');
+      sinon.stub(coverageClient, 'parseProjectFromPathName');
+      sinon.stub(coverageClient, 'fetchCoverageJsonData');
+      coverageClient.getNormalizedHost.returns(
+          'chromium-review.googlesource.com');
+      coverageClient.parseProjectFromPathName.returns('chromium/src');
+      coverageClient.fetchCoverageJsonData.returns(sampleCoverageData);
+
+      const providedData = await coverageClient.provideCoverageData(
+          12345, 'base/test.cc', 'PARENT', 2)
+      assert.equal('chromium-review.googlesource.com',
+                   coverageClient.coverageData.host);
+      assert.equal('chromium/src', coverageClient.coverageData.project);
+      assert.equal(12345, coverageClient.coverageData.changeNum);
+      assert.equal(2, coverageClient.coverageData.patchNum);
+      assert.deepEqual(sampleCoverageRanges,
+                       coverageClient.coverageData.coverageRanges);
+      assert.deepEqual(sampleCoverageRanges['base/test.cc'], providedData);
+
+      coverageClient.getNormalizedHost.restore();
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.fetchCoverageJsonData.restore();
+    });
+
+  });
+</script>
