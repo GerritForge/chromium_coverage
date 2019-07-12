@@ -106,7 +106,7 @@ found in the LICENSE file.
                       '/c/chromium/src/+/1369646/3/base/base/test.cc/'));
     });
 
-    test('fetch coverage data', async () => {
+    test('fetch coverage data for chromium', async () => {
       const response = new window.Response(JSON.stringify(sampleCoverageData),
                                            { status: 200 });
       window.fetch.returns(Promise.resolve(response));
@@ -115,6 +115,35 @@ found in the LICENSE file.
       assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
                    'coverage-data?host=chromium-review.googlesource.com&' +
                    'project=chromium/src&change=12345&patchset=2&format=json&' +
+                   'concise=1',
+                   window.fetch.getCall(0).args[0]);
+      assert.deepEqual(sampleCoverageData, responseJson);
+    });
+
+    test('fetch coverage data for libassistant', async () => {
+      const response = new window.Response(JSON.stringify(sampleCoverageData),
+                                           { status: 200 });
+      window.fetch.returns(Promise.resolve(response));
+      const responseJson = await coverageClient.fetchCoverageJsonData(
+        'libassistant-internal-review.googlesource.com',
+        'libassistant/internal', 12345, 2);
+      assert.equal('https://gob-coverage.googleplex.com/coverage/api/' +
+                   'coverage-data?host=libassistant-internal-review.' +
+                   'googlesource.com&project=libassistant/internal&' +
+                   'change=12345&patchset=2&format=json&concise=1',
+                   window.fetch.getCall(0).args[0]);
+      assert.deepEqual(sampleCoverageData, responseJson);
+    });
+
+    test('fetch coverage data for unknown host', async () => {
+      const response = new window.Response(JSON.stringify(sampleCoverageData),
+                                           { status: 200 });
+      window.fetch.returns(Promise.resolve(response));
+      const responseJson = await coverageClient.fetchCoverageJsonData(
+        'unknown-review.googlesource.com', 'unknown/src', 12345, 2);
+      assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
+                   'coverage-data?host=unknown-review.googlesource.com&' +
+                   'project=unknown/src&change=12345&patchset=2&format=json&' +
                    'concise=1',
                    window.fetch.getCall(0).args[0]);
       assert.deepEqual(sampleCoverageData, responseJson);

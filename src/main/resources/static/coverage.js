@@ -5,9 +5,23 @@
 (function() {
   'use strict';
 
-  // Url of the API from which to fetch per-cl coverage data.
-  const REQUEST_BASE_URL =
-    'https://findit-for-me.appspot.com/coverage/api/coverage-data';
+  // Url suffix of the code coverage service API from which to fetch per-cl
+  // coverage data.
+  const COVERAGE_SERVICE_ENDPOINT_SUFFIX = '/coverage/api/coverage-data';
+
+  // The gob coverage host which is used to process internal project.
+  const GOB_COVERAGE_HOST = 'https://gob-coverage.googleplex.com';
+
+  // The chromium coverage host which is used to process external project.
+  const CHROMIUM_COVERAGE_HOST = 'https://findit-for-me.appspot.com';
+
+  // Dict of gerrit review host and corresponding code coverage service host
+  // from which to fetch per-cl coverage data.
+  const COVERAGE_SERVICE_HOST = {
+    'chromium-review.googlesource.com': CHROMIUM_COVERAGE_HOST,
+    'libassistant-internal-review.git.corp.google.com': GOB_COVERAGE_HOST,
+    'libassistant-internal-review.googlesource.com': GOB_COVERAGE_HOST,
+  };
 
   // Used to identify host that is running on canary. This is needed because
   // even though the host name starts with 'canary-', when constructing the
@@ -131,7 +145,13 @@
         `?host=${host}&project=${project}&change=${changeNum}&` +
         `patchset=${patchNum}&format=json&concise=1`;
 
-      const url = REQUEST_BASE_URL + requestQuery;
+      let coverageHost = COVERAGE_SERVICE_HOST[host];
+      // If the host is not found, use CHROMIUM_COVERAGE_HOST by default.
+      if (coverageHost === undefined) {
+        coverageHost = CHROMIUM_COVERAGE_HOST;
+      }
+      const endpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
+      const url = endpoint + requestQuery;
       const response = await fetch(url);
       const responseJson = await response.json();
 
