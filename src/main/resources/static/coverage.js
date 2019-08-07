@@ -23,11 +23,9 @@
     'libassistant-internal-review.googlesource.com': GOB_COVERAGE_HOST,
   };
 
-  // Used to identify host that is running on canary. This is needed because
-  // even though the host name starts with 'canary-', when constructing the
-  // url to make request to fetch coverage data, the 'host' parameter in the
-  // query is expected to not contain the 'canary-' prefix.
-  const CANARY_HOST_PREFIX = 'canary-';
+  // Used to identify host prefixes that should be stripped. This is needed
+  // so that the plugin can work in different environments, such as 'canary-'.
+  const HOST_PREFIXES = ['canary-', 'polymer2-'];
 
   /**
    * Provides APIs to fetch and cache coverage data.
@@ -71,9 +69,13 @@
      * @param {string} host The host name of the window location.
      */
     getNormalizedHost(host) {
-      if (host.startsWith(CANARY_HOST_PREFIX)) {
-        host = host.substring(CANARY_HOST_PREFIX.length);
+      for (const prefix of HOST_PREFIXES) {
+        if (host.startsWith(prefix)) {
+          host = host.substring(prefix.length);
+          break;
+        }
       }
+
       return host;
     }
 
