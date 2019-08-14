@@ -34,6 +34,7 @@
 
     constructor() {
       this.provideCoverageData = this.provideCoverageData.bind(this);
+      this.prefetchCoverageData = this.prefetchCoverageData.bind(this);
 
       // Used to cache coverage date for a patchset.
       this.coverageData = {
@@ -47,21 +48,27 @@
         //     end_line: 3,
         //   },
         // };
-        coverageRanges: null,
+        changeInfo: {
+          host: null,
+          project: null,
+          changeNum: null,
+          patchNum: null,
+        },
 
-        // Change info.
-        host: null,
-        project: null,
-        changeNum: null,
-        patchNum: null,
+        // Used to indicate that an async fetch of coverage data, and it is
+        // expeccted to be resolved to an object with following format:
+        // A map whose keys are file paths and corresponding values are
+        // arrays of coverage ranges with the following format:
+        // {
+        //   side: 'right',
+        //   type: 'COVERED',
+        //   code_range: {
+        //     start_line: 1,
+        //     end_line: 3,
+        //   },
+        // };
+        rangesPromise: null,
       };
-
-      // Used to indicate that an async fetch of coverage data is already in
-      // progress. The main use case is to optimize the scenario when an user
-      // clicks the 'EXPAND ALL' to show the diffs for all the files, fetching
-      // coverage data should ONLY be done once for all instead of once for
-      // every file.
-      this.dataFetchingPromise = null;
     }
 
     /**
@@ -135,25 +142,27 @@
      *   }
      * }
      *
-     * @param {string} host The host name of the patchset.
-     * @param {string} project The project name of the patchset.
-     * @param {string} changeNum The change number of the patchset.
-     * @param {string} patchNum The patchset number of the patchset.
+     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
      * @return {Promise} Resolves to parsed JSON response body if the coverage
      *     data is successfully retrieved, otherwise, resolves to null.
      */
-    async fetchCoverageJsonData(host, project, changeNum, patchNum) {
-      const requestQuery =
-        `?host=${host}&project=${project}&change=${changeNum}&` +
-        `patchset=${patchNum}&format=json&concise=1`;
+    async fetchCoverageJsonData(changeInfo) {
+      const params = new URLSearchParams({
+        host: changeInfo.host,
+        project: changeInfo.project,
+        change: changeInfo.changeNum,
+        patchset: changeInfo.patchNum,
+        format: 'json',
+        concise: '1',
+      });
 
-      let coverageHost = COVERAGE_SERVICE_HOST[host];
+      let coverageHost = COVERAGE_SERVICE_HOST[changeInfo.host];
       // If the host is not found, use CHROMIUM_COVERAGE_HOST by default.
       if (coverageHost === undefined) {
         coverageHost = CHROMIUM_COVERAGE_HOST;
       }
       const endpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
-      const url = endpoint + requestQuery;
+      const url = `${endpoint}?${params.toString()}`;
       const response = await fetch(url);
       const responseJson = await response.json();
 
@@ -165,7 +174,7 @@
 
       if (response.status == 404 &&
           responseJson.is_project_supported == false) {
-        console.warn(this.coverageData.project,
+        console.warn(this.coverageData.changeInfo.project,
                      ' project is not supported for code coverage.');
         return null;
       }
@@ -273,17 +282,13 @@
     /**
      * Fetches code coverage ranges from coverage service for a patchset.
      *
-     * @param {string} host The host name of the patchset.
-     * @param {string} project The project name of the patchset.
-     * @param {string} changeNum The change number of the patchset.
-     * @param {string} patchNum The patchset number of the patchset.
+     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
      * @return {Promise} Resolves to a map of files to coverage ranges if the
      *     coverage ata is successfully retrieved and parsed, otherwise,
      *     resolves to null.
      */
-    async fetchCoverageRanges(host, project, changeNum, patchNum) {
-      const responseJson = await this.fetchCoverageJsonData(
-          host, project, changeNum, patchNum);
+    async fetchCoverageRanges(changeInfo) {
+      const responseJson = await this.fetchCoverageJsonData(changeInfo);
       if (!responseJson) {
         console.log('Failed to fetch coverage data from service.');
         return;
@@ -300,6 +305,19 @@
     }
 
     /**
+     * Fetches code coverage ranges from coverage service for a patchset.
+     *
+     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
+     */
+    updateCoverageDataIfNecessary(changeInfo) {
+      if (JSON.stringify(changeInfo) !==
+          JSON.stringify(this.coverageData.changeInfo)) {
+        this.coverageData.changeInfo = changeInfo;
+        this.coverageData.rangesPromise = this.fetchCoverageRanges(changeInfo);
+      }
+    }
+
+    /**
      * Provides code coverage data for a file of a patchset.
      * @param {string} changeNum The change number of the patchset.
      * @param {string} path The relative path to the file.
@@ -308,37 +326,33 @@
      * @return {Object} Returns a list of coverage ranges.
      */
     async provideCoverageData(changeNum, path, basePatchNum, patchNum) {
-      const host = this.getNormalizedHost(window.location.host);
-      const project = this.parseProjectFromPathName(window.location.pathname);
-      if (!project) {
-        console.error('Failed to parse project from current url.')
-        return [];
-      }
+      const changeInfo = {
+        host: this.getNormalizedHost(window.location.host),
+        project: this.parseProjectFromPathName(window.location.pathname),
+        changeNum: changeNum,
+        patchNum: patchNum,
+      };
+      this.updateCoverageDataIfNecessary(changeInfo);
+      const coverageRanges = await this.coverageData.rangesPromise;
+      return coverageRanges[path] || [];
+    }
 
-      const isCachedOrInProgress = (
-          this.coverageData.host == host &&
-          this.coverageData.project == project &&
-          this.coverageData.changeNum == changeNum &&
-          this.coverageData.patchNum == patchNum &&
-          (this.coverageData.coverageRanges !== null ||
-           this.dataFetchingPromise !== null));
-      if (!isCachedOrInProgress) {
-        this.coverageData.host = host;
-        this.coverageData.project = project;
-        this.coverageData.changeNum = changeNum;
-        this.coverageData.patchNum = patchNum;
-        this.coverageData.coverageRanges = null;
-        this.dataFetchingPromise = this.fetchCoverageRanges(host, project,
-          changeNum, patchNum);
-      }
-
-      this.coverageData.coverageRanges = await this.dataFetchingPromise;
-
-      if (this.coverageData.coverageRanges[path]) {
-        return this.coverageData.coverageRanges[path];
-      }
-
-      return [];
+    /**
+     * Prefetch coverage data.
+     *
+     * This method is supposed to be triggered by the 'showchange' event.
+     *
+     * @param {ChangeInfo} change Info of the current change.
+     * @param {RevisionInfo} revision Info of the current revision.
+     */
+    prefetchCoverageData(change, revision) {
+      const changeInfo = {
+        host: this.getNormalizedHost(window.location.host),
+        project: change.project,
+        changeNum: change._number,
+        patchNum: revision._number,
+      };
+      this.updateCoverageDataIfNecessary(changeInfo);
     }
   };
 

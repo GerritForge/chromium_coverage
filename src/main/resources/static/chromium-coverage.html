@@ -15,6 +15,11 @@ found in the LICENSE file.
         const coverageClient = new window.CoverageClient();
         const annotationApi = plugin.annotationApi();
         annotationApi.setCoverageProvider(coverageClient.provideCoverageData);
+
+        // provideCoverageData is only called when user expands diff view, and
+        // to make sure coverage data can be fetched in time and shows up
+        // reliably, prefetch the coverage data in advance.
+        plugin.on('showchange', coverageClient.prefetchCoverageData);
       });
     })();
   </script>
