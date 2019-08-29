@@ -184,7 +184,7 @@ found in the LICENSE file.
             resolve(sampleCoverageRanges);
       });
       const providedData = await coverageClient.provideCoverageData(
-          12345, 'base/test.cc', 'PARENT', 2);
+          '12345', 'base/test.cc', 'PARENT', '2');
       assert.equal(false, coverageClient.fetchCoverageJsonData.called);
       assert.deepEqual(sampleCoverageRanges['base/test.cc'], providedData);
 
@@ -202,7 +202,7 @@ found in the LICENSE file.
       coverageClient.fetchCoverageJsonData.returns(sampleCoverageData);
 
       const providedData = await coverageClient.provideCoverageData(
-          12345, 'base/test.cc', 'PARENT', 2)
+          '12345', 'base/test.cc', 'PARENT', '2')
 
       assert.deepEqual(sampleChangeInfo,
                        coverageClient.coverageData.changeInfo);

@@ -329,8 +329,8 @@
       const changeInfo = {
         host: this.getNormalizedHost(window.location.host),
         project: this.parseProjectFromPathName(window.location.pathname),
-        changeNum: changeNum,
-        patchNum: patchNum,
+        changeNum: parseInt(changeNum),
+        patchNum: parseInt(patchNum),
       };
       this.updateCoverageDataIfNecessary(changeInfo);
       const coverageRanges = await this.coverageData.rangesPromise;
@@ -349,8 +349,8 @@
       const changeInfo = {
         host: this.getNormalizedHost(window.location.host),
         project: change.project,
-        changeNum: change._number,
-        patchNum: revision._number,
+        changeNum: parseInt(change._number),
+        patchNum: parseInt(revision._number),
       };
       this.updateCoverageDataIfNecessary(changeInfo);
     }
