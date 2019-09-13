@@ -25,7 +25,7 @@
 
   // Used to identify host prefixes that should be stripped. This is needed
   // so that the plugin can work in different environments, such as 'canary-'.
-  const HOST_PREFIXES = ['canary-', 'polymer2-'];
+  const HOST_PREFIXES = ['canary-', 'polymer1-', 'polymer2-'];
 
   /**
    * Provides APIs to fetch and cache coverage data.
