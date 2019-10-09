@@ -33,13 +33,15 @@
   class CoverageClient {
 
     constructor() {
-      this.provideCoverageData = this.provideCoverageData.bind(this);
-      this.prefetchCoverageData = this.prefetchCoverageData.bind(this);
+      this.provideCoverageRanges = this.provideCoverageRanges.bind(this);
+      this.prefetchCoverageRanges = this.prefetchCoverageRanges.bind(this);
+      this.provideCoveragePercentages =
+          this.provideCoveragePercentages.bind(this);
 
       // Used to cache coverage date for a patchset.
       this.coverageData = {
-        // A map whose keys are file paths and corresponding values are
-        // arrays of coverage ranges with the following format:
+        // An object whose properties are file paths and corresponding values
+        // are arrays of coverage ranges with the following format:
         // {
         //   side: 'right',
         //   type: 'COVERED',
@@ -55,10 +57,10 @@
           patchNum: null,
         },
 
-        // Used to indicate that an async fetch of coverage data, and it is
+        // Used to indicate that an async fetch of coverage ranges, and it is
         // expeccted to be resolved to an object with following format:
-        // A map whose keys are file paths and corresponding values are
-        // arrays of coverage ranges with the following format:
+        // An object whose properties are file paths and corresponding values
+        // are arrays of coverage ranges with the following format:
         // {
         //   side: 'right',
         //   type: 'COVERED',
@@ -68,6 +70,16 @@
         //   },
         // };
         rangesPromise: null,
+
+        // Used to indicate an async fetch of coverage percentages, and it is
+        // expected to be resolved to an object with following format:
+        // An object whose properties are file paths and corresponding values
+        // are also objects that look like:
+        // {
+        //   absolute: 99, // Coverage percentage of all lines.
+        //   incremental: 75, // Coverage percentages of added lines.
+        // };
+        percentagesPromise: null,
       };
     }
 
@@ -94,7 +106,7 @@
      * '/c/chromium/src/+/1369646/3'
      * '/c/chromium/src/+/1369646/3/base/base/test.cc'
      * @param {string} pathName The path name of the window location.
-     * @return {Str} Returns current project such as chromium/src if the url
+     * @return {string} Returns current project such as chromium/src if the url
      *     is valid, otherwise, returns null.
      */
     parseProjectFromPathName(pathName) {
@@ -113,45 +125,62 @@
     /**
      * Fetches code coverage data from coverage service for a patchset.
      *
-     * The format of the response fetched from the server is the same as the
-     * following example, and the format is flexible enough to be extended to
-     * contain additional information such as branch coverage, and how many
-     * times each line is covered on different platforms.
+     * There are two types of data can be fetched: 'lines' or 'percentages'.
+     * The response of 'lines' fetch looks like:
      *
      * {
-     *   "data": {
-     *     "files": [
+     *   data: {
+     *     files: [
      *       {
-     *         "path": "base/task/task_scheduler/priority_queue_unittest.cc",
-     *         "lines": [
+     *         path: 'base/task/task_scheduler/priority_queue_unittest.cc',
+     *         lines: [
      *           {
-     *             "line": 168,
-     *             "count": 10
+     *             line: 168,
+     *             count: 10
      *           },
-     *           {
-     *             "line": 170,
-     *             "count": 0
-     *           },
-     *           {
-     *             "line": 171,
-     *             "count": 0
-     *           }
      *         ]
      *       }
      *     ]
      *   }
      * }
      *
-     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
-     * @return {Promise} Resolves to parsed JSON response body if the coverage
+     * The response of 'percentages' fetch looks like:
+     * {
+     *   data: {
+     *     files: [
+     *       {
+     *         path: 'base/files/file_util_unittest.cc',
+     *         absolute_coverage: {
+     *           covered: 2729,
+     *           total: 2744,
+     *         },
+     *         incremental_coverage: {
+     *           covered: 9,
+     *           total: 12,
+     *         },
+     *       }
+     *     ]
+     *   }
+     * }
+     * The value of 'incremental_coverage' is null if there are no added lines.
+     *
+     * @param {object} changeInfo Has host, project, changeNum and patchNum.
+     * @param {string} type Type of data to fetch: "lines" or "percentages".
+     * @return {promise} Resolves to parsed JSON response body if the coverage
      *     data is successfully retrieved, otherwise, resolves to null.
      */
-    async fetchCoverageJsonData(changeInfo) {
+    async fetchCoverageJsonData(changeInfo, type) {
+      if (type !== 'lines' && type !== 'percentages') {
+        throw new Error(
+            'Type is expected to be either "lines" or "percentages"');
+      }
+
       const params = new URLSearchParams({
         host: changeInfo.host,
         project: changeInfo.project,
         change: changeInfo.changeNum,
         patchset: changeInfo.patchNum,
+        type: type,
         format: 'json',
         concise: '1',
       });
@@ -196,22 +225,22 @@
 
     /**
      * Converts the JSON response to coverage ranges needed by coverage layer.
-     * @param {Object} responseJson The JSON response returned from coverage
+     * @param {object} responseJson The JSON response returned from coverage
      *     service.
-     * @return {Object} Returns a map whose keys are file paths and
+     * @return {object} Returns an object whose properties are file paths and
      *     corresponding values are a list of coverage ranges if the JSON
      *     response has valid format, otherwise, returns null.
      */
     convertResponseJsonToCoverageRanges(responseJson) {
       if (!responseJson.data) {
-        console.error('Invalid code coverage response format. ' +
+        console.error('Invalid coverage lines response format. ' +
                       'Expecting "data" in ', responseJson);
         return null;
       }
 
       const responseData = responseJson.data;
       if (!responseData.files) {
-        console.error('Invalid code coverage response format. ' +
+        console.error('Invalid coverage lines response format. ' +
                       'Expecting "files" in ', responseData);
         return null;
       }
@@ -222,7 +251,7 @@
       for (var i = 0; i < responseFiles.length; i++) {
         const responseFile = responseFiles[i];
         if (!responseFile.path || !responseFile.lines) {
-          console.error('Invalid code coverage response format. ' +
+          console.error('Invalid coverage lines response format. ' +
                         'Expecting "path" and "lines" in ', responseFile);
           return null;
         }
@@ -236,7 +265,7 @@
         for (var j = 0; j < responseLines.length; j++) {
           const responseLine = responseLines[j];
           if (!responseLine.line || responseLine.count == null) {
-            console.error('Invalid code coverage response format. ' +
+            console.error('Invalid coverage lines response format. ' +
                           'Expecting "line" and "count" in ', responseLine);
             return null;
           }
@@ -282,50 +311,129 @@
     /**
      * Fetches code coverage ranges from coverage service for a patchset.
      *
-     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
-     * @return {Promise} Resolves to a map of files to coverage ranges if the
+     * @param {object} changeInfo Has host, project, changeNum and patchNum.
+     * @return {promise} Resolves to a map of files to coverage ranges if the
      *     coverage ata is successfully retrieved and parsed, otherwise,
      *     resolves to null.
      */
     async fetchCoverageRanges(changeInfo) {
-      const responseJson = await this.fetchCoverageJsonData(changeInfo);
+      const responseJson = await this.fetchCoverageJsonData(changeInfo,
+                                                            'lines');
       if (!responseJson) {
-        console.log('Failed to fetch coverage data from service.');
-        return;
+        console.log('Failed to fetch coverage ranges from service.');
+        return null;
       }
 
       const coverageRanges = this.convertResponseJsonToCoverageRanges(
           responseJson);
       if (!coverageRanges) {
         console.log('Failed to validate or parse coverage ranges.');
-        return;
+        return null;
       }
 
       return coverageRanges;
     }
 
     /**
+     * Converts the JSON response to coverage percentages.
+     * @param {object} responseJson The JSON response returned from coverage
+     *     service.
+     * @return {object} Returns an object whose properties are file paths and
+     *     corresponding values are objects representing absolute and
+     *     incremental coverage percentages if the JSON response has valid
+     *     format, otherwise, returns null.
+     */
+    convertResponseJsonToCoveragePercentages(responseJson) {
+      if (!responseJson.data) {
+        console.error('Invalid coverage percentages response format. ' +
+                      'Expecting "data" in ', responseJson);
+        return null;
+      }
+
+      const responseData = responseJson.data;
+      if (!responseData.files) {
+        console.error('Invalid coverage percentages response format. ' +
+                      'Expecting "files" in ', responseData);
+        return null;
+      }
+
+      const coveragePercentages = {};
+      for (let responseFile of responseData.files) {
+        if (!responseFile.path || !responseFile.absolute_coverage) {
+          console.error('Invalid coverage percentages response format. ' +
+                        'Expecting "path", "absolute_coverage" and in ',
+                        responseFile);
+          return null;
+        }
+
+        const fileCov = {
+          absolute: Math.round(responseFile.absolute_coverage.covered * 100 /
+                               responseFile.absolute_coverage.total),
+          incremental: null,
+        };
+
+        if (responseFile.incremental_coverage) {
+          fileCov.incremental = Math.round(
+              responseFile.incremental_coverage.covered * 100 /
+              responseFile.incremental_coverage.total);
+        }
+
+        coveragePercentages[responseFile.path] = fileCov;
+      }
+
+      return coveragePercentages;
+    }
+
+    /**
+     * Fetches code coverage percentages from coverage service for a patchset.
+     *
+     * @param {object} changeInfo Has host, project, changeNum and patchNum.
+     * @return {promise} Resolves to a map of files to coverage percentages if
+     *     coverage data is successfully retrieved and parsed, otherwise,
+     *     resolves to null.
+     */
+    async fetchCoveragePercentages(changeInfo) {
+      const responseJson = await this.fetchCoverageJsonData(changeInfo,
+                                                            'percentages');
+      if (!responseJson) {
+        console.log('Failed to fetch coverage percentages from service.');
+        return null;
+      }
+
+      const coveragePercentages = this.convertResponseJsonToCoveragePercentages(
+          responseJson);
+      if (!coveragePercentages) {
+        console.log('Failed to validate or parse coverage percentages.');
+        return null;
+      }
+
+      return coveragePercentages;
+    }
+
+    /**
      * Fetches code coverage ranges from coverage service for a patchset.
      *
-     * @param {Object} changeInfo Has host, project, changeNum and patchNum.
+     * @param {object} changeInfo Has host, project, changeNum and patchNum.
      */
     updateCoverageDataIfNecessary(changeInfo) {
       if (JSON.stringify(changeInfo) !==
           JSON.stringify(this.coverageData.changeInfo)) {
         this.coverageData.changeInfo = changeInfo;
         this.coverageData.rangesPromise = this.fetchCoverageRanges(changeInfo);
+        this.coverageData.percentagesPromise = this.fetchCoveragePercentages(
+            changeInfo);
       }
     }
 
     /**
-     * Provides code coverage data for a file of a patchset.
+     * Provides code coverage ranges for a file of a patchset.
      * @param {string} changeNum The change number of the patchset.
      * @param {string} path The relative path to the file.
      * @param {string} basePatchNum The patchset number of the base patchset.
      * @param {string} patchNum The patchset number of the patchset.
-     * @return {Object} Returns a list of coverage ranges.
+     * @return {object} Returns a list of coverage ranges.
      */
-    async provideCoverageData(changeNum, path, basePatchNum, patchNum) {
+    async provideCoverageRanges(changeNum, path, basePatchNum, patchNum) {
       const changeInfo = {
         host: this.getNormalizedHost(window.location.host),
         project: this.parseProjectFromPathName(window.location.pathname),
@@ -334,18 +442,23 @@
       };
       this.updateCoverageDataIfNecessary(changeInfo);
       const coverageRanges = await this.coverageData.rangesPromise;
+      if (!coverageRanges) {
+        console.log('Failed to provide coverage ranges.');
+        return [];
+      }
+
       return coverageRanges[path] || [];
     }
 
     /**
-     * Prefetch coverage data.
+     * Prefetch coverage ranges.
      *
      * This method is supposed to be triggered by the 'showchange' event.
      *
      * @param {ChangeInfo} change Info of the current change.
      * @param {RevisionInfo} revision Info of the current revision.
      */
-    prefetchCoverageData(change, revision) {
+    prefetchCoverageRanges(change, revision) {
       const changeInfo = {
         host: this.getNormalizedHost(window.location.host),
         project: change.project,
@@ -353,6 +466,32 @@
         patchNum: parseInt(revision._number),
       };
       this.updateCoverageDataIfNecessary(changeInfo);
+    }
+
+    /**
+     * Provides code coverage percentage for a file of a patchset.
+     * @param {string} changeNum The change number of the patchset.
+     * @param {string} path The relative path to the file.
+     * @param {string} patchNum The patchset number of the patchset.
+     * @param {string} type Type of percentage: "absolute" or "incremental".
+     * @return {object} Returns an object representing the absolute and
+     *     incremental coverages.
+     */
+    async provideCoveragePercentages(changeNum, path, patchNum) {
+      const changeInfo = {
+        host: this.getNormalizedHost(window.location.host),
+        project: this.parseProjectFromPathName(window.location.pathname),
+        changeNum: parseInt(changeNum),
+        patchNum: parseInt(patchNum),
+      };
+      this.updateCoverageDataIfNecessary(changeInfo);
+      const coveragePercentages = await this.coverageData.percentagesPromise;
+      if (!coveragePercentages || !coveragePercentages[path]) {
+        console.log('Failed to provide coverage percentages.');
+        return null;
+      }
+
+      return coveragePercentages[path];
     }
   };
 

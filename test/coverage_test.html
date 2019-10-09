@@ -28,8 +28,8 @@ found in the LICENSE file.
       patchNum: 2,
     };
 
-    // Sample coverage data fetched from coverage serviced; used for testing.
-    const sampleCoverageData = {
+    // Sample coverage lines response from service; used for testing.
+    const sampleLinesResponse = {
       data: {
         files: [
           {
@@ -53,7 +53,7 @@ found in the LICENSE file.
       }
     };
 
-    // Sample coverage ranges that match with the sample coverage data.
+    // Sample coverage ranges that match with the lines response.
     const sampleCoverageRanges = {
       'base/test.cc': [
         {
@@ -73,6 +73,33 @@ found in the LICENSE file.
           }
         },
       ]
+    };
+
+    // Sample coverage percentages response from service; used for testing.
+    const samplePercentagesResponse = {
+      data: {
+        files: [
+          {
+            path: 'base/test.cc',
+            absolute_coverage: {
+              covered: 3,
+              total: 10,
+            },
+            incremental_coverage: {
+              covered: 3,
+              total: 4,
+            },
+          }
+        ]
+      }
+    };
+
+    // Sample coverage percentages that match with the percentages response.
+    const sampleCoveragePercentages = {
+      'base/test.cc': {
+        absolute: 30,
+        incremental: 75,
+      }
     };
 
     setup(() => {
@@ -114,22 +141,36 @@ found in the LICENSE file.
                       '/c/chromium/src/+/1369646/3/base/base/test.cc/'));
     });
 
-    test('fetch coverage data for chromium', async () => {
-      const response = new window.Response(JSON.stringify(sampleCoverageData),
+    test('fetch coverage lines for chromium', async () => {
+      const response = new window.Response(JSON.stringify(sampleLinesResponse),
                                            { status: 200 });
       window.fetch.returns(Promise.resolve(response));
       const responseJson = await coverageClient.fetchCoverageJsonData(
-        sampleChangeInfo);
+        sampleChangeInfo, 'lines');
       assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
                    'coverage-data?host=chromium-review.googlesource.com&' +
                    'project=chromium%2Fsrc&change=12345&patchset=2&' +
-                   'format=json&concise=1',
+                   'type=lines&format=json&concise=1',
                    window.fetch.getCall(0).args[0]);
-      assert.deepEqual(sampleCoverageData, responseJson);
+      assert.deepEqual(sampleLinesResponse, responseJson);
     });
 
-    test('fetch coverage data for libassistant', async () => {
-      const response = new window.Response(JSON.stringify(sampleCoverageData),
+    test('fetch coverage percentanges for chromium', async () => {
+      const response = new window.Response(JSON.stringify(sampleLinesResponse),
+                                           { status: 200 });
+      window.fetch.returns(Promise.resolve(response));
+      const responseJson = await coverageClient.fetchCoverageJsonData(
+        sampleChangeInfo, 'percentages');
+      assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
+                   'coverage-data?host=chromium-review.googlesource.com&' +
+                   'project=chromium%2Fsrc&change=12345&patchset=2&' +
+                   'type=percentages&format=json&concise=1',
+                   window.fetch.getCall(0).args[0]);
+      assert.deepEqual(sampleLinesResponse, responseJson);
+    });
+
+    test('fetch coverage lines for libassistant', async () => {
+      const response = new window.Response(JSON.stringify(sampleLinesResponse),
                                            { status: 200 });
       window.fetch.returns(Promise.resolve(response));
       const responseJson = await coverageClient.fetchCoverageJsonData({
@@ -137,17 +178,17 @@ found in the LICENSE file.
           project: 'libassistant/internal',
           changeNum: 12345,
           patchNum: 2,
-      });
+      }, 'lines');
       assert.equal('https://gob-coverage.googleplex.com/coverage/api/' +
                    'coverage-data?host=libassistant-internal-review.' +
                    'googlesource.com&project=libassistant%2Finternal&' +
-                   'change=12345&patchset=2&format=json&concise=1',
+                   'change=12345&patchset=2&type=lines&format=json&concise=1',
                    window.fetch.getCall(0).args[0]);
-      assert.deepEqual(sampleCoverageData, responseJson);
+      assert.deepEqual(sampleLinesResponse, responseJson);
     });
 
-    test('fetch coverage data for unknown host', async () => {
-      const response = new window.Response(JSON.stringify(sampleCoverageData),
+    test('fetch coverage lines for unknown host', async () => {
+      const response = new window.Response(JSON.stringify(sampleLinesResponse),
                                            { status: 200 });
       window.fetch.returns(Promise.resolve(response));
       const responseJson = await coverageClient.fetchCoverageJsonData({
@@ -155,23 +196,30 @@ found in the LICENSE file.
           project: 'unknown/src',
           changeNum: 12345,
           patchNum: 2,
-      });
+      }, 'lines');
       assert.equal('https://findit-for-me.appspot.com/coverage/api/' +
                    'coverage-data?host=unknown-review.googlesource.com&' +
                    'project=unknown%2Fsrc&change=12345&patchset=2&' +
-                   'format=json&concise=1',
+                   'type=lines&format=json&concise=1',
                    window.fetch.getCall(0).args[0]);
-      assert.deepEqual(sampleCoverageData, responseJson);
+      assert.deepEqual(sampleLinesResponse, responseJson);
     });
 
     test('parse coverage ranges', () => {
       const coverageRanges =
           coverageClient.convertResponseJsonToCoverageRanges(
-              sampleCoverageData);
+              sampleLinesResponse);
       assert.deepEqual(sampleCoverageRanges, coverageRanges);
     });
 
-    test('coverage data is cached', async () => {
+    test('parse coverage percentages', () => {
+      const coveragePercentages =
+          coverageClient.convertResponseJsonToCoveragePercentages(
+              samplePercentagesResponse);
+      assert.deepEqual(sampleCoveragePercentages, coveragePercentages);
+    });
+
+    test('coverage data are cached', async () => {
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'parseProjectFromPathName');
       sinon.stub(coverageClient, 'fetchCoverageJsonData');
@@ -183,43 +231,110 @@ found in the LICENSE file.
           function(resolve, reject) {
             resolve(sampleCoverageRanges);
       });
-      const providedData = await coverageClient.provideCoverageData(
+      coverageClient.coverageData.percentagesPromise = new Promise(
+          function(resolve, reject) {
+            resolve(sampleCoveragePercentages);
+      });
+
+      const ranges = await coverageClient.provideCoverageRanges(
           '12345', 'base/test.cc', 'PARENT', '2');
       assert.equal(false, coverageClient.fetchCoverageJsonData.called);
-      assert.deepEqual(sampleCoverageRanges['base/test.cc'], providedData);
+      assert.deepEqual(sampleCoverageRanges['base/test.cc'], ranges);
+
+      const percentages = await coverageClient.provideCoveragePercentages(
+          '12345', 'base/test.cc', '2');
+      assert.equal(false, coverageClient.fetchCoverageJsonData.called);
+      assert.deepEqual({absolute: 30, incremental: 75}, percentages);
 
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
       coverageClient.fetchCoverageJsonData.restore();
     });
 
-    test('coverage data is not cached', async () => {
+    test('coverage ranges are not cached', async () => {
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'parseProjectFromPathName');
       sinon.stub(coverageClient, 'fetchCoverageJsonData');
       coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
       coverageClient.parseProjectFromPathName.returns(sampleChangeInfo.project);
-      coverageClient.fetchCoverageJsonData.returns(sampleCoverageData);
+      coverageClient.fetchCoverageJsonData.withArgs(
+          sampleChangeInfo, 'lines').returns(sampleLinesResponse);
 
-      const providedData = await coverageClient.provideCoverageData(
+      const ranges = await coverageClient.provideCoverageRanges(
           '12345', 'base/test.cc', 'PARENT', '2')
 
       assert.deepEqual(sampleChangeInfo,
                        coverageClient.coverageData.changeInfo);
-      assert.deepEqual(sampleCoverageRanges['base/test.cc'], providedData);
+      assert.deepEqual(sampleCoverageRanges['base/test.cc'], ranges);
 
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
       coverageClient.fetchCoverageJsonData.restore();
     });
 
-    test('prefetch coverage data', async () => {
+    test('coverage percentages are not cached', async () => {
+      sinon.stub(coverageClient, 'getNormalizedHost');
+      sinon.stub(coverageClient, 'parseProjectFromPathName');
+      sinon.stub(coverageClient, 'fetchCoverageJsonData');
+      coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
+      coverageClient.parseProjectFromPathName.returns(sampleChangeInfo.project);
+      coverageClient.fetchCoverageJsonData.withArgs(
+          sampleChangeInfo, 'percentages').returns(samplePercentagesResponse);
+
+      const percentages = await coverageClient.provideCoveragePercentages(
+          '12345', 'base/test.cc', '2')
+      assert.deepEqual(sampleChangeInfo,
+                       coverageClient.coverageData.changeInfo);
+      assert.deepEqual({absolute: 30, incremental: 75}, percentages);
+
+      coverageClient.getNormalizedHost.restore();
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.fetchCoverageJsonData.restore();
+    });
+
+    test('incremental percentage is not available', async () => {
+      const response = {
+        data: {
+          files: [
+            {
+              path: 'base/test.cc',
+              absolute_coverage: {
+                covered: 3,
+                total: 10,
+              },
+              incremental_coverage: null,
+            }
+          ]
+        }
+      };
+
+      sinon.stub(coverageClient, 'getNormalizedHost');
+      sinon.stub(coverageClient, 'parseProjectFromPathName');
+      sinon.stub(coverageClient, 'fetchCoverageJsonData');
+      coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
+      coverageClient.parseProjectFromPathName.returns(sampleChangeInfo.project);
+      coverageClient.fetchCoverageJsonData.withArgs(
+          sampleChangeInfo, 'percentages').returns(response);
+
+      const percentages = await coverageClient.provideCoveragePercentages(
+          '12345', 'base/test.cc', '2')
+      assert.deepEqual(sampleChangeInfo,
+                       coverageClient.coverageData.changeInfo);
+      assert.deepEqual({absolute: 30, incremental: null}, percentages);
+
+      coverageClient.getNormalizedHost.restore();
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.fetchCoverageJsonData.restore();
+    });
+
+    test('prefetch coverage ranges', async () => {
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'fetchCoverageJsonData');
       coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
-      coverageClient.fetchCoverageJsonData.returns(sampleCoverageData);
+      coverageClient.fetchCoverageJsonData.withArgs(
+          sampleChangeInfo, 'lines').returns(sampleLinesResponse);
 
-      coverageClient.prefetchCoverageData(
+      coverageClient.prefetchCoverageRanges(
           {'project': 'chromium/src','_number': 12345}, {'_number': 2});
 
       assert.deepEqual(sampleChangeInfo,
@@ -232,8 +347,8 @@ found in the LICENSE file.
     });
 
     // This test tests the scenario that if two requests were issued to fetch
-    // coverage data for different change/patchset, the eventual coverage ranges
-    // won't be overwritten incorrectly.
+    // coverage ranges for different change/patchset, the eventual coverage
+    // ranges won't be overwritten incorrectly.
     test('racing condition between multiple fetches', async () => {
       let changeInfo1 = JSON.parse(JSON.stringify(sampleChangeInfo));
       changeInfo1.patchNum = 1;
@@ -275,21 +390,27 @@ found in the LICENSE file.
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'parseProjectFromPathName');
       sinon.stub(coverageClient, 'fetchCoverageRanges');
+      sinon.stub(coverageClient, 'fetchCoveragePercentages');
       coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
       coverageClient.parseProjectFromPathName.returns(sampleChangeInfo.project);
       coverageClient.fetchCoverageRanges.withArgs(changeInfo1).returns(
           fetchPromise1)
       coverageClient.fetchCoverageRanges.withArgs(changeInfo2).returns(
           fetchPromise2)
+      coverageClient.fetchCoveragePercentages.returns(new Promise(
+          function(resolve, reject) {
+            resolve(sampleCoveragePercentages);
+      }));
 
-      coverageClient.prefetchCoverageData({
+      coverageClient.prefetchCoverageRanges({
         'project': changeInfo1.project,
         '_number': changeInfo1.changeNum
       }, {
         '_number': changeInfo1.patchNum
       });
-      coverageClient.provideCoverageData(changeInfo2.changeNum, 'base/test.cc',
-                                         'PARENT', changeInfo2.patchNum);
+      coverageClient.provideCoverageRanges(
+          changeInfo2.changeNum, 'base/test.cc', 'PARENT',
+          changeInfo2.patchNum);
 
       // Even though the first request finishes after the second request, it
       // shouldn't overwrite the coverage ranges promise because the user has
@@ -301,6 +422,7 @@ found in the LICENSE file.
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
       coverageClient.fetchCoverageRanges.restore();
+      coverageClient.fetchCoveragePercentages.restore();
     })
 
   });

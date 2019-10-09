@@ -14,12 +14,12 @@ found in the LICENSE file.
       Gerrit.install(function(plugin) {
         const coverageClient = new window.CoverageClient();
         const annotationApi = plugin.annotationApi();
-        annotationApi.setCoverageProvider(coverageClient.provideCoverageData);
+        annotationApi.setCoverageProvider(coverageClient.provideCoverageRanges);
 
-        // provideCoverageData is only called when user expands diff view, and
-        // to make sure coverage data can be fetched in time and shows up
+        // provideCoverageRanges is only called when user expands diff view, and
+        // to make sure coverage data can be fetched in time and show up
         // reliably, prefetch the coverage data in advance.
-        plugin.on('showchange', coverageClient.prefetchCoverageData);
+        plugin.on('showchange', coverageClient.prefetchCoverageRanges);
       });
     })();
   </script>
