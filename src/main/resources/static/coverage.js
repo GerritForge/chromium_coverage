@@ -111,12 +111,12 @@
      */
     parseProjectFromPathName(pathName) {
       if (!pathName.startsWith('/c/')) {
-        return null;
+        throw new Error(`${pathName} is expected to start with "/c/"`);
       }
 
       const indexEnd = pathName.indexOf('/+');
       if (indexEnd == -1) {
-        return null;
+        throw new Error(`${pathName} is expected to contain "/+"`)
       }
 
       return pathName.substring(3, indexEnd);
@@ -194,30 +194,20 @@
       const url = `${endpoint}?${params.toString()}`;
       const response = await fetch(url);
       const responseJson = await response.json();
-
-      if (responseJson.error) {
-        console.error('Parse code coverage response body to JSON returned ' +
-                      'error: ', responseJson.error);
-        return null;
-      }
-
-      if (response.status == 404 &&
-          responseJson.is_project_supported == false) {
-        console.warn(this.coverageData.changeInfo.project,
-                     ' project is not supported for code coverage.');
-        return null;
+      if (response.status == 400 &&
+          responseJson.is_project_supported === false) {
+        throw new Error(`"${changeInfo.project}" project is not supported ` +
+                        `for code coverage`);
       }
 
       if (response.status == 500 &&
-          responseJson.is_service_enabled == false) {
-        console.warn('Code coverage service is temporarily disabled.');
-        return null;
+          responseJson.is_service_enabled === false) {
+        throw new Error('Code coverage service is temporarily disabled');
       }
 
       if (!response.ok) {
-        console.warn(`Request code coverage data returned http ` +
-                     `${response.status}`);
-        return null;
+        throw new Error(`Request code coverage data returned http ` +
+                        `${response.status}`);
       }
 
       return responseJson;
@@ -233,16 +223,14 @@
      */
     convertResponseJsonToCoverageRanges(responseJson) {
       if (!responseJson.data) {
-        console.error('Invalid coverage lines response format. ' +
-                      'Expecting "data" in ', responseJson);
-        return null;
+        throw new Error('Invalid coverage lines response format. Expecting ' +
+                        '"data" property');
       }
 
       const responseData = responseJson.data;
       if (!responseData.files) {
-        console.error('Invalid coverage lines response format. ' +
-                      'Expecting "files" in ', responseData);
-        return null;
+        throw new Error('Invalid coverage lines response format. Expecting ' +
+                        '"files" property');
       }
 
       const responseFiles = responseData.files;
@@ -251,9 +239,8 @@
       for (var i = 0; i < responseFiles.length; i++) {
         const responseFile = responseFiles[i];
         if (!responseFile.path || !responseFile.lines) {
-          console.error('Invalid coverage lines response format. ' +
-                        'Expecting "path" and "lines" in ', responseFile);
-          return null;
+          throw new Error('Invalid coverage lines response format. Expecting ' +
+                          '"path" and "lines" properties');
         }
 
         coverageRanges[responseFile.path] = new Array();
@@ -265,9 +252,8 @@
         for (var j = 0; j < responseLines.length; j++) {
           const responseLine = responseLines[j];
           if (!responseLine.line || responseLine.count == null) {
-            console.error('Invalid coverage lines response format. ' +
-                          'Expecting "line" and "count" in ', responseLine);
-            return null;
+            throw new Error('Invalid coverage lines response format. ' +
+                            'Expecting "line" and "count" properties');
           }
 
           if (startLine != -1 &&
@@ -319,19 +305,7 @@
     async fetchCoverageRanges(changeInfo) {
       const responseJson = await this.fetchCoverageJsonData(changeInfo,
                                                             'lines');
-      if (!responseJson) {
-        console.log('Failed to fetch coverage ranges from service.');
-        return null;
-      }
-
-      const coverageRanges = this.convertResponseJsonToCoverageRanges(
-          responseJson);
-      if (!coverageRanges) {
-        console.log('Failed to validate or parse coverage ranges.');
-        return null;
-      }
-
-      return coverageRanges;
+      return this.convertResponseJsonToCoverageRanges(responseJson);
     }
 
     /**
@@ -345,25 +319,22 @@
      */
     convertResponseJsonToCoveragePercentages(responseJson) {
       if (!responseJson.data) {
-        console.error('Invalid coverage percentages response format. ' +
-                      'Expecting "data" in ', responseJson);
-        return null;
+        throw new Error('Invalid coverage percentages response format. ' +
+                        'Expecting "data" property');
       }
 
       const responseData = responseJson.data;
       if (!responseData.files) {
-        console.error('Invalid coverage percentages response format. ' +
-                      'Expecting "files" in ', responseData);
-        return null;
+        throw new Error('Invalid coverage percentages response format. ' +
+                        'Expecting "files" property');
       }
 
       const coveragePercentages = {};
       for (let responseFile of responseData.files) {
         if (!responseFile.path || !responseFile.absolute_coverage) {
-          console.error('Invalid coverage percentages response format. ' +
-                        'Expecting "path", "absolute_coverage" and in ',
-                        responseFile);
-          return null;
+          throw new Error('Invalid coverage percentages response format. ' +
+                          'Expecting "path" and "absolute_coverage" ' +
+                          'properties');
         }
 
         const fileCov = {
@@ -395,19 +366,7 @@
     async fetchCoveragePercentages(changeInfo) {
       const responseJson = await this.fetchCoverageJsonData(changeInfo,
                                                             'percentages');
-      if (!responseJson) {
-        console.log('Failed to fetch coverage percentages from service.');
-        return null;
-      }
-
-      const coveragePercentages = this.convertResponseJsonToCoveragePercentages(
-          responseJson);
-      if (!coveragePercentages) {
-        console.log('Failed to validate or parse coverage percentages.');
-        return null;
-      }
-
-      return coveragePercentages;
+      return this.convertResponseJsonToCoveragePercentages(responseJson);
     }
 
     /**
@@ -420,8 +379,14 @@
           JSON.stringify(this.coverageData.changeInfo)) {
         this.coverageData.changeInfo = changeInfo;
         this.coverageData.rangesPromise = this.fetchCoverageRanges(changeInfo);
+        this.coverageData.rangesPromise.catch((error) => {
+          console.warn(error);
+        });
         this.coverageData.percentagesPromise = this.fetchCoveragePercentages(
             changeInfo);
+        this.coverageData.percentagesPromise.catch((error) => {
+          console.warn(error);
+        })
       }
     }
 
@@ -442,11 +407,6 @@
       };
       this.updateCoverageDataIfNecessary(changeInfo);
       const coverageRanges = await this.coverageData.rangesPromise;
-      if (!coverageRanges) {
-        console.log('Failed to provide coverage ranges.');
-        return [];
-      }
-
       return coverageRanges[path] || [];
     }
 
@@ -486,11 +446,6 @@
       };
       this.updateCoverageDataIfNecessary(changeInfo);
       const coveragePercentages = await this.coverageData.percentagesPromise;
-      if (!coveragePercentages || !coveragePercentages[path]) {
-        console.log('Failed to provide coverage percentages.');
-        return null;
-      }
-
       return coveragePercentages[path];
     }
   };
