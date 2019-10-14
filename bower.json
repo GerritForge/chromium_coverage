@@ -1,7 +1,7 @@
 {
   "name": "chromium-coverage",
   "dependencies": {
-    "polymer": "Polymer/polymer#*"
+    "polymer": "Polymer/polymer#^2.0.0"
   },
   "devDependencies": {
     "iron-test-helpers": "PolymerElements/iron-test-helpers#*",

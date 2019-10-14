@@ -4,6 +4,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="coverage-percentage-views/header-view.html">
+<link rel="import" href="coverage-percentage-views/content-view.html">
+<link rel="import" href="coverage-percentage-views/summary-view.html">
+
 <script src="./coverage.js"></script>
 
 <dom-module id='chromium-coverage'>
@@ -20,6 +24,31 @@ found in the LICENSE file.
         // to make sure coverage data can be fetched in time and show up
         // reliably, prefetch the coverage data in advance.
         plugin.on('showchange', coverageClient.prefetchCoverageRanges);
+
+        // Following components are regiested to display coverage percentages.
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-header', 'absolute-header-view');
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-content',
+            'absolute-content-view').onAttached(
+              view => {
+                view.provider = coverageClient.provideCoveragePercentages;
+              }
+            );
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-summary', 'absolute-summary-view');
+
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-header', 'incremental-header-view');
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-content',
+            'incremental-content-view').onAttached(
+              view => {
+                view.provider = coverageClient.provideCoveragePercentages;
+              }
+            );
+        plugin.registerDynamicCustomComponent(
+            'change-view-file-list-summary', 'incremental-summary-view');
       });
     })();
   </script>
