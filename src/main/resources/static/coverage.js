@@ -396,7 +396,8 @@
      * @param {string} path The relative path to the file.
      * @param {string} basePatchNum The patchset number of the base patchset.
      * @param {string} patchNum The patchset number of the patchset.
-     * @return {object} Returns a list of coverage ranges.
+     * @return {object} Returns a list of coverage ranges. On error, it logs the
+     *     error and returns null/undefined.
      */
     async provideCoverageRanges(changeNum, path, basePatchNum, patchNum) {
       const changeInfo = {
@@ -406,8 +407,13 @@
         patchNum: parseInt(patchNum),
       };
       this.updateCoverageDataIfNecessary(changeInfo);
-      const coverageRanges = await this.coverageData.rangesPromise;
-      return coverageRanges[path] || [];
+      try {
+        const coverageRanges = await this.coverageData.rangesPromise;
+        return coverageRanges[path] || [];
+      } catch(error) {
+        console.log(error);
+        return null;
+      }
     }
 
     /**
@@ -435,7 +441,8 @@
      * @param {string} patchNum The patchset number of the patchset.
      * @param {string} type Type of percentage: "absolute" or "incremental".
      * @return {object} Returns an object representing the absolute and
-     *     incremental coverages.
+     *     incremental coverages. On error, it logs the error and returns
+     *     null/undefined.
      */
     async provideCoveragePercentages(changeNum, path, patchNum) {
       const changeInfo = {
@@ -445,8 +452,13 @@
         patchNum: parseInt(patchNum),
       };
       this.updateCoverageDataIfNecessary(changeInfo);
-      const coveragePercentages = await this.coverageData.percentagesPromise;
-      return coveragePercentages[path];
+      try {
+        const coveragePercentages = await this.coverageData.percentagesPromise;
+        return coveragePercentages[path];
+      } catch(error) {
+        console.log(error);
+        return null;
+      }
     }
   };
 
