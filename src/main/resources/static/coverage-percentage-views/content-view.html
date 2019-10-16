@@ -1,33 +1,29 @@
 <script>
-  'use strict'
-  function _coveragePercentageContentObject(is, type) {
-    return {
-      is: is,
+  const _coveragePercentageContentObject = {
+    properties: {
+      changeNum: String,
+      patchRange: Object,
+      path: String,
+      provider: Function,
+      percentageText: String,
+      type: String,
+    },
 
-      properties: {
-        changeNum: String,
-        patchRange: Object,
-        path: String,
-        provider: Function,
-        percentageText: String,
-      },
+    observers: [
+      '_computePercentage(changeNum, patchRange, path, provider)',
+    ],
 
-      observers: [
-        '_computePercentage(changeNum, patchRange, path, provider)'
-      ],
-
-      async _computePercentage(changeNum, patchRange, path, provider) {
-        this.percentageText = '-';
-        if (!changeNum || !patchRange || !path || !provider) {
-          return;
-        }
-
-        const p = await provider(changeNum, path, patchRange.patchNum);
-        if (p && p[type]) {
-          this.percentageText = p[type] + '%';
-        }
+    async _computePercentage(changeNum, patchRange, path, provider) {
+      this.percentageText = '-';
+      if (!changeNum || !patchRange || !path || !provider) {
+        return;
       }
-    };
+
+      const p = await provider(changeNum, path, patchRange.patchNum);
+      if (p && p[this.type]) {
+        this.percentageText = p[this.type] + '%';
+      }
+    },
   }
 </script>
 
@@ -44,10 +40,21 @@
   </template>
 
   <script>
-    'use strict';
     (function() {
-      Polymer(_coveragePercentageContentObject('absolute-content-view',
-                                               'absolute'));
+    'use strict';
+
+      const properties = Object.assign(
+          {}, _coveragePercentageContentObject.properties);
+      properties.type = { type: String, value: 'absolute', readOnly: true };
+      Polymer({
+        is: 'absolute-content-view',
+
+        properties: properties,
+
+        observers: _coveragePercentageContentObject.observers,
+
+        _computePercentage: _coveragePercentageContentObject._computePercentage,
+      });
     })();
   </script>
 </dom-module>
@@ -65,10 +72,21 @@
   </template>
 
   <script>
-    'use strict';
     (function() {
-      Polymer(_coveragePercentageContentObject('incremental-content-view',
-                                               'incremental'));
+    'use strict';
+
+      const properties = Object.assign(
+          {}, _coveragePercentageContentObject.properties);
+      properties.type = { type: String, value: 'incremental', readOnly: true };
+      Polymer({
+        is: 'incremental-content-view',
+
+        properties: properties,
+
+        observers: _coveragePercentageContentObject.observers,
+
+        _computePercentage: _coveragePercentageContentObject._computePercentage,
+      });
     })();
   </script>
 </dom-module>
