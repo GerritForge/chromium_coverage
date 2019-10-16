@@ -4,7 +4,6 @@
 
 package com.googlesource.chromium.plugins.coverage;
 
-import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
 import com.google.gerrit.server.config.PluginConfigFactory;
@@ -13,12 +12,9 @@ import com.google.gerrit.server.project.ProjectResource;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.eclipse.jgit.lib.Config;
 
 @Singleton
 class GetConfig implements RestReadView<ProjectResource> {
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
   private final PluginConfigFactory config;
 
   @Inject
