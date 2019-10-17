@@ -32,24 +32,28 @@
    */
   class CoverageClient {
 
-    constructor() {
+    constructor(plugin) {
       this.provideCoverageRanges = this.provideCoverageRanges.bind(this);
       this.prefetchCoverageRanges = this.prefetchCoverageRanges.bind(this);
       this.provideCoveragePercentages =
           this.provideCoveragePercentages.bind(this);
 
+      this.plugin = plugin;
+
+      // Used to cache coverage config for a project.
+      this.coverageConfig = {
+        // Used to validate/invalidate the cache.
+        project: null,
+
+        // Used to indicate an async fetch of per-project configuration, and it
+        // is exepcted to be resolved to an object defined by:
+        // https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage/+/refs/heads/master/src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java#34
+        configPromise: null,
+      }
+
       // Used to cache coverage date for a patchset.
       this.coverageData = {
-        // An object whose properties are file paths and corresponding values
-        // are arrays of coverage ranges with the following format:
-        // {
-        //   side: 'right',
-        //   type: 'COVERED',
-        //   code_range: {
-        //     start_line: 1,
-        //     end_line: 3,
-        //   },
-        // };
+        // Used to validate/invalidate the cache.
         changeInfo: {
           host: null,
           project: null,
@@ -467,7 +471,23 @@
      *     columns, otherwise, false.
      */
     async showPercentageColumns() {
-      return false;
+      // This method is expected to be called when percentage columns are
+      // attached, which means that the current page is at change view and that
+      // the current project can be parsed from the current URL.
+      const project = this.parseProjectFromPathName(window.location.pathname);
+      if (project !== this.coverageConfig.project) {
+        this.coverageConfig.project = project;
+        this.coverageConfig.configPromise = this.plugin.restApi().get(
+          `/projects/${encodeURIComponent(project)}/` +
+          `${encodeURIComponent(this.plugin.getPluginName())}~config`);
+      }
+      try {
+        const config = await this.coverageConfig.configPromise;
+        return config && config.enabled;
+      } catch(error) {
+        console.log(error);
+        return false;
+      }
     }
   };
 

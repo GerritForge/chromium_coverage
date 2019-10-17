@@ -425,5 +425,25 @@ found in the LICENSE file.
       coverageClient.fetchCoveragePercentages.restore();
     })
 
+    test('show percentage columns', async () => {
+      sinon.stub(coverageClient, 'parseProjectFromPathName').returns(
+          'chromium/src');
+      const configPromise = new Promise((resolve, reject) => {
+        resolve({ enabled: true });
+      });
+      coverageClient.plugin = {
+        getPluginName: sinon.stub().returns('chromium-coverage'),
+        restApi: sinon.stub().returns({
+          get: sinon.stub().returns(configPromise),
+        }),
+      };
+
+      assert.equal(true, await coverageClient.showPercentageColumns());
+      assert.equal('/projects/chromium%2Fsrc/chromium-coverage~config',
+                   coverageClient.plugin.restApi().get.getCall(0).args[0]);
+
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.plugin = null;
+    });
   });
 </script>

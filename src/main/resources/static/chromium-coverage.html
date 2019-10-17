@@ -13,7 +13,7 @@ found in the LICENSE file.
       'use strict';
 
       Gerrit.install(function(plugin) {
-        const coverageClient = new window.CoverageClient();
+        const coverageClient = new window.CoverageClient(plugin);
         const annotationApi = plugin.annotationApi();
         annotationApi.setCoverageProvider(coverageClient.provideCoverageRanges);
 

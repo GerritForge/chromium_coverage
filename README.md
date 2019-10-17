@@ -26,4 +26,16 @@ for more options.
 
 ln -s /path/to/chromium-coverage.html plugins/
 
+## Project Configuration
+
+This plugin is configured via the `project.config` file present in the repo's
+`refs/meta/config` ref. This file uses git config format. By default, the
+coverage percentage columns in the file list are hidden to avoid visual
+distraction in unrelated projects, and in order to have them displayed, please
+add the following config:
+```
+[plugin "chromium-coverage"]
+  enabled = true
+```
+
 [1]: https://www.polymer-project.org/1.0/docs/tools/tests
