@@ -467,7 +467,7 @@
      *     columns, otherwise, false.
      */
     async showPercentageColumns() {
-      return true;
+      return false;
     }
   };
 
