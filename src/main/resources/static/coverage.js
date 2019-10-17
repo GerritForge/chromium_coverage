@@ -460,6 +460,15 @@
         return null;
       }
     }
+
+    /**
+     * Returns whether to show percentage columns for the current change.
+     * @return {promise<boolean>} Resolves to true if to show the percentage
+     *     columns, otherwise, false.
+     */
+    async showPercentageColumns() {
+      return true;
+    }
   };
 
   window.CoverageClient = CoverageClient;

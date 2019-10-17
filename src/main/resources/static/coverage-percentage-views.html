@@ -1,0 +1,191 @@
+<style>
+  .coverage-percentage-column {
+    display: inline-block;
+    min-width: 3.5em;
+    text-align: center;
+  }
+  .coverage-percentage-column.hidden {
+    display: none;
+  }
+
+</style>
+
+<script>
+  const _coveragePercentageTemplateObject = {
+    properties: {
+      shown: {
+        type: Boolean,
+        value: false,
+      }
+    },
+
+    _computeCoverageClass(shown) {
+      if (shown) {
+        return 'coverage-percentage-column';
+      }
+
+      return 'coverage-percentage-column hidden';
+    },
+  };
+
+  const _coveragePercentageContentOverrideObject = {
+    properties: {
+      shown: {
+        type: Boolean,
+        value: false,
+      },
+      changeNum: String,
+      patchRange: Object,
+      path: String,
+      provider: Function,
+      percentageText: String,
+      type: String,
+    },
+
+    observers: [
+      '_computePercentage(changeNum, patchRange, path, provider)',
+    ],
+
+    async _computePercentage(changeNum, patchRange, path, provider) {
+      this.percentageText = '-';
+      if (!changeNum || !patchRange || !path || !provider) {
+        return;
+      }
+
+      const p = await provider(changeNum, path, patchRange.patchNum);
+      if (p && p[this.type]) {
+        this.percentageText = p[this.type] + '%';
+      }
+    },
+  };
+</script>
+
+<dom-module id="absolute-header-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage of the whole file">|Cov.|</div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageTemplateObject.properties);
+      Polymer({
+        is: 'absolute-header-view',
+
+        properties: properties,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+      });
+    })();
+  </script>
+</dom-module>
+
+<dom-module id="incremental-header-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage of new lines in the file">&Delta;Cov.</div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageTemplateObject.properties);
+      Polymer({
+        is: 'incremental-header-view',
+
+        properties: properties,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+      });
+    })();
+  </script>
+</dom-module>
+
+<dom-module id="absolute-content-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageContentOverrideObject.properties);
+      properties.type = { type: String, value: 'absolute', readOnly: true };
+      Polymer({
+        is: 'absolute-content-view',
+
+        properties: properties,
+
+        observers: _coveragePercentageContentOverrideObject.observers,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+
+        _computePercentage: _coveragePercentageContentOverrideObject._computePercentage,
+      });
+    })();
+  </script>
+</dom-module>
+
+<dom-module id="incremental-content-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageContentOverrideObject.properties);
+      properties.type = { type: String, value: 'incremental', readOnly: true };
+      Polymer({
+        is: 'incremental-content-view',
+
+        properties: properties,
+
+        observers: _coveragePercentageContentOverrideObject.observers,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+
+        _computePercentage: _coveragePercentageContentOverrideObject._computePercentage,
+      });
+    })();
+  </script>
+</dom-module>
+
+<dom-module id="absolute-summary-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]"></div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageTemplateObject.properties);
+      Polymer({
+        is: 'absolute-summary-view',
+
+        properties: properties,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+      });
+    })();
+  </script>
+</dom-module>
+
+<dom-module id="incremental-summary-view">
+  <template>
+    <div class$="[[_computeCoverageClass(shown)]]"></div>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+      const properties = Object.assign({}, _coveragePercentageTemplateObject.properties);
+      Polymer({
+        is: 'incremental-summary-view',
+
+        properties: properties,
+
+        _computeCoverageClass: _coveragePercentageTemplateObject._computeCoverageClass,
+      });
+    })();
+  </script>
+</dom-module>
