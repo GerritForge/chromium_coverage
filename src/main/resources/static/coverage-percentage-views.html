@@ -1,14 +1,4 @@
-<style>
-  .coverage-percentage-column {
-    display: inline-block;
-    min-width: 3.5em;
-    text-align: center;
-  }
-  .coverage-percentage-column.hidden {
-    display: none;
-  }
-
-</style>
+<link rel="import" href="styles.html">
 
 <script>
   const _coveragePercentageTemplateObject = {
@@ -62,6 +52,7 @@
 
 <dom-module id="absolute-header-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage of the whole file">|Cov.|</div>
   </template>
 
@@ -82,6 +73,7 @@
 
 <dom-module id="incremental-header-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage of new lines in the file">&Delta;Cov.</div>
   </template>
 
@@ -102,6 +94,7 @@
 
 <dom-module id="absolute-content-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
   </template>
 
@@ -127,6 +120,7 @@
 
 <dom-module id="incremental-content-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
   </template>
 
@@ -152,6 +146,7 @@
 
 <dom-module id="absolute-summary-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]"></div>
   </template>
 
@@ -172,6 +167,7 @@
 
 <dom-module id="incremental-summary-view">
   <template>
+    <style include="coverage-column-styles"></style>
     <div class$="[[_computeCoverageClass(shown)]]"></div>
   </template>
 
