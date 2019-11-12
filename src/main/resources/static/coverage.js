@@ -379,6 +379,11 @@
      * @param {object} changeInfo Has host, project, changeNum and patchNum.
      */
     updateCoverageDataIfNecessary(changeInfo) {
+      if (isNaN(changeInfo.changeNum) || isNaN(changeInfo.patchNum) ||
+          changeInfo.changeNum <= 0 || changeInfo.patchNum <= 0) {
+        return;
+      }
+
       if (JSON.stringify(changeInfo) !==
           JSON.stringify(this.coverageData.changeInfo)) {
         this.coverageData.changeInfo = changeInfo;

@@ -346,6 +346,26 @@ found in the LICENSE file.
       coverageClient.fetchCoverageJsonData.restore();
     });
 
+    test('invalid patchset number', async () => {
+      sinon.stub(coverageClient, 'getNormalizedHost');
+      sinon.stub(coverageClient, 'parseProjectFromPathName');
+      sinon.stub(coverageClient, 'fetchCoverageJsonData');
+      coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
+      coverageClient.parseProjectFromPathName.returns(sampleChangeInfo.project);
+
+      await coverageClient.provideCoverageRanges(
+          '12345', 'base/test.cc', null, null);
+      assert.equal(false, coverageClient.fetchCoverageJsonData.called);
+
+      await coverageClient.provideCoveragePercentages(
+          '12345', 'base/test.cc', -1);
+      assert.equal(false, coverageClient.fetchCoverageJsonData.called);
+
+      coverageClient.getNormalizedHost.restore();
+      coverageClient.parseProjectFromPathName.restore();
+      coverageClient.fetchCoverageJsonData.restore();
+    });
+
     // This test tests the scenario that if two requests were issued to fetch
     // coverage ranges for different change/patchset, the eventual coverage
     // ranges won't be overwritten incorrectly.
