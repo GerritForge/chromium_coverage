@@ -34,7 +34,7 @@ coverage percentage columns in the file list are hidden to avoid visual
 distraction in unrelated projects, and in order to have them displayed, please
 add the following config:
 ```
-[plugin "chromium-coverage"]
+[plugin "code-coverage"]
   enabled = true
 ```
 
