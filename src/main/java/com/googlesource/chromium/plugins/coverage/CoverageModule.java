@@ -17,7 +17,7 @@ public class CoverageModule extends RestApiModule {
   protected void configure() {
     // Point to the JavaScript that provides the main functionality of this plugin.
     DynamicSet.bind(binder(), WebUiPlugin.class)
-        .toInstance(new JavaScriptPlugin("chromium-coverage.html"));
+        .toInstance(new JavaScriptPlugin("chromium-coverage.js"));
 
     // Register the config endpoint used by the JavaScript client code.
     get(PROJECT_KIND, "config").to(GetConfig.class);
