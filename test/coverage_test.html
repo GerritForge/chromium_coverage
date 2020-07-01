@@ -9,7 +9,6 @@ found in the LICENSE file.
 
 <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
 <script src="../bower_components/web-component-tester/browser.js"></script>
-<script src="../src/main/resources/static/coverage.js"></script>
 
 <test-fixture id="coverage-fixture">
   <template>
@@ -17,7 +16,10 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
+  import './common-test-setup.js';
+  import {CoverageClient} from '../src/main/resources/static/coverage.js';
+
   suite('<code coverage>', () => {
 
     // Sample change info used for testing.
@@ -102,8 +104,9 @@ found in the LICENSE file.
       }
     };
 
+    let coverageClient;
     setup(() => {
-      coverageClient = new window.CoverageClient();
+      coverageClient = new CoverageClient();
       sinon.stub(window, 'fetch');
     });
 
@@ -375,7 +378,7 @@ found in the LICENSE file.
       let changeInfo2 = JSON.parse(JSON.stringify(sampleChangeInfo));
       changeInfo2.patchNum = 2;
 
-      ranges1 = {
+      let ranges1 = {
         'base/test.cc': [
           {
             side: 'right',
@@ -393,7 +396,7 @@ found in the LICENSE file.
         }, 100);
       });
 
-      ranges2 = {
+      let ranges2 = {
         'base/test.cc': [
           {
             side: 'right',

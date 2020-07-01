@@ -1,5 +1,6 @@
 load("//tools/bzl:plugin.bzl", "gerrit_plugin")
 load("//tools/bzl:js.bzl", "polygerrit_plugin")
+load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
 
 gerrit_plugin(
     name = "chromium_coverage",
@@ -10,14 +11,24 @@ gerrit_plugin(
         "Implementation-Title: Chromium-coverage plugin",
         "Implementation-URL: https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage",
     ],
-    resources = glob(["src/main/**/*"]),
+    resources = glob(["src/main/resources/**/*"]),
+)
+
+rollup_bundle(
+    name = "chromium-coverage-bundle",
+    srcs = glob([
+        "src/main/resources/**/*.js",
+    ]),
+    entry_point = "src/main/resources/static/chromium-coverage.js",
+    rollup_bin = "//tools/node_tools:rollup-bin",
+    sourcemap = "hidden",
+    deps = [
+        "@tools_npm//rollup-plugin-node-resolve",
+    ],
 )
 
 polygerrit_plugin(
     name = "chromium_coverage_ui",
-    srcs = glob([
-        "src/main/resources/static/*.html",
-        "src/main/resources/static/*.js",
-    ]),
-    app = "src/main/resources/static/chromium-coverage.html",
+    app = "chromium-coverage-bundle.js",
+    plugin_name = "chromium-coverage",
 )

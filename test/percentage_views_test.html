@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright 2019 The Chromium Authors. All rights reserved.
+Copyright 2020 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -8,10 +8,7 @@ found in the LICENSE file.
 <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
 <script src="../bower_components/web-component-tester/browser.js"></script>
 
-<link rel="import" href="../bower_components/polymer/polymer.html">
-
 <title>coverage percentage views test</title>
-<link rel="import" href="../src/main/resources/static/coverage-percentage-views.html">
 
 <test-fixture id="absolute-header-view">
   <template>
@@ -37,101 +34,104 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
+  import './common-test-setup.js';
+  import '../src/main/resources/static/coverage-percentage-views.js';
+
   suite('<coverage percentage views>', () => {
-    test('absolute header view', () => {
-      const element = fixture('absolute-header-view');
-      assert.equal(element.$$('div').textContent.trim(), '|Cov.|');
-    });
-
-    test('incremental header view', () => {
-      const element = fixture('incremental-header-view');
-      assert.equal(element.$$('div').textContent.trim(), 'ΔCov.');
-    });
-
-    test('absolute content view', (done) => {
-      const element = fixture('absolute-content-view');
-      element.changeNum = '12345';
-      element.patchRange = {patchNum: '2'};
-      element.path = 'base/test.cc';
-      element.provider = (changeNum, path, patchNum) => {
-        return {
-          absolute: 30,
-          incremental: 75,
-        };
-      };
-
-      flush(() => {
-        assert.equal(element.percentageText, '30%');
-        done();
+      test('absolute header view', () => {
+          const element = fixture('absolute-header-view');
+          assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|');
       });
-    });
 
-    test('absolute content view percentages are not available', (done) => {
-      const element = fixture('absolute-content-view');
-      element.changeNum = '12345';
-      element.patchRange = {patchNum: '2'};
-      element.path = 'base/test.cc';
-      element.provider = (changeNum, path, patchNum) => {
-        return null;
-      };
-
-      flush(() => {
-        assert.equal(element.percentageText, '-');
-        done();
+      test('incremental header view', () => {
+          const element = fixture('incremental-header-view');
+          assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.');
       });
-    });
 
-    test('incremental content view', (done) => {
-      const element = fixture('incremental-content-view');
-      element.changeNum = '12345';
-      element.patchRange = {patchNum: '2'};
-      element.path = 'base/test.cc';
-      element.provider = (changeNum, path, patchNum) => {
-        return {
-          absolute: 30,
-          incremental: 75,
-        };
-      };
+      test('absolute content view', (done) => {
+          const element = fixture('absolute-content-view');
+          element.changeNum = '12345';
+          element.patchRange = {patchNum: '2'};
+          element.path = 'base/test.cc';
+          element.provider = (changeNum, path, patchNum) => {
+              return {
+                  absolute: 30,
+                  incremental: 75,
+              };
+          };
 
-      flush(() => {
-        assert.equal(element.percentageText, '75%');
-        done();
+          flush(() => {
+              assert.equal(element.percentageText, '30%');
+              done();
+          });
       });
-    });
 
-    test('incremental content view percentages are not available', (done) => {
-      const element = fixture('incremental-content-view');
-      element.changeNum = '12345';
-      element.patchRange = {patchNum: '2'};
-      element.path = 'base/test.cc';
-      element.provider = (changeNum, path, patchNum) => {
-        return null;
-      };
+      test('absolute content view percentages are not available', (done) => {
+          const element = fixture('absolute-content-view');
+          element.changeNum = '12345';
+          element.patchRange = {patchNum: '2'};
+          element.path = 'base/test.cc';
+          element.provider = (changeNum, path, patchNum) => {
+              return null;
+          };
 
-      flush(() => {
-        assert.equal(element.percentageText, '-');
-        done();
+          flush(() => {
+              assert.equal(element.percentageText, '-');
+              done();
+          });
       });
-    });
 
-    test('incremental content view incremenal percentage is not available',
-         (done) => {
-      const element = fixture('incremental-content-view');
-      element.changeNum = '12345';
-      element.patchRange = {patchNum: '2'};
-      element.path = 'base/test.cc';
-      element.provider = (changeNum, path, patchNum) => {
-        return {
-          absolute: 30,
-          incremental: null,
-        };
-      };
+      test('incremental content view', (done) => {
+          const element = fixture('incremental-content-view');
+          element.changeNum = '12345';
+          element.patchRange = {patchNum: '2'};
+          element.path = 'base/test.cc';
+          element.provider = (changeNum, path, patchNum) => {
+              return {
+                  absolute: 30,
+                  incremental: 75,
+              };
+          };
 
-      flush(() => {
-        assert.equal(element.percentageText, '-');
-        done();
+          flush(() => {
+              assert.equal(element.percentageText, '75%');
+              done();
+          });
       });
-    });
+
+      test('incremental content view percentages are not available', (done) => {
+          const element = fixture('incremental-content-view');
+          element.changeNum = '12345';
+          element.patchRange = {patchNum: '2'};
+          element.path = 'base/test.cc';
+          element.provider = (changeNum, path, patchNum) => {
+              return null;
+          };
+
+          flush(() => {
+              assert.equal(element.percentageText, '-');
+              done();
+          });
+      });
+
+      test('incremental content view incremenal percentage is not available',
+           (done) => {
+               const element = fixture('incremental-content-view');
+               element.changeNum = '12345';
+               element.patchRange = {patchNum: '2'};
+               element.path = 'base/test.cc';
+               element.provider = (changeNum, path, patchNum) => {
+                   return {
+                       absolute: 30,
+                       incremental: null,
+                   };
+               };
+
+               flush(() => {
+                   assert.equal(element.percentageText, '-');
+                   done();
+               });
+           });
   });
 </script>
