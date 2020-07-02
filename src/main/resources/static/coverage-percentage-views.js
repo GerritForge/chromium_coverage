@@ -5,13 +5,17 @@ found in the LICENSE file.
 */
 
 import './styles.js';
-const _coveragePercentageTemplateObject = {
-  properties: {
-    shown: {
-      type: Boolean,
-      value: false,
-    }
-  },
+
+/** Base class for all components */
+class BaseComponent extends Polymer.Element {
+  static get properties() {
+    return {
+      shown: {
+        type: Boolean,
+        value: false,
+      }
+    };
+  }
 
   _computeCoverageClass(shown) {
     if (shown) {
@@ -19,26 +23,30 @@ const _coveragePercentageTemplateObject = {
     }
 
     return 'coverage-percentage-column hidden';
-  },
-};
+  }
+}
 
-const _coveragePercentageContentOverrideObject = {
-  properties: {
-    shown: {
-      type: Boolean,
-      value: false,
-    },
-    changeNum: String,
-    patchRange: Object,
-    path: String,
-    provider: Function,
-    percentageText: String,
-    type: String,
-  },
+class BaseCoverageComponent extends BaseComponent {
+  static get properties() {
+    return {
+      shown: {
+        type: Boolean,
+        value: false,
+      },
+      changeNum: String,
+      patchRange: Object,
+      path: String,
+      provider: Function,
+      percentageText: String,
+      type: String,
+    };
+  }
 
-  observers: [
-    '_computePercentage(changeNum, patchRange, path, provider)',
-  ],
+  static get observers() {
+    return [
+      '_computePercentage(changeNum, patchRange, path, provider)',
+    ];
+  }
 
   async _computePercentage(changeNum, patchRange, path, provider) {
     this.percentageText = '-';
@@ -50,11 +58,10 @@ const _coveragePercentageContentOverrideObject = {
     if (p && p[this.type]) {
       this.percentageText = p[this.type] + '%';
     }
-  },
-};
+  }
+}
 
-class AbsoluteHeaderView extends Polymer.Element {
-
+class AbsoluteHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
@@ -65,20 +72,10 @@ class AbsoluteHeaderView extends Polymer.Element {
   static get is() {
     return 'absolute-header-view';
   }
-
-  static get properties() {
-    return Object.assign({}, _coveragePercentageTemplateObject.properties);
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
-  }
 }
 customElements.define(AbsoluteHeaderView.is, AbsoluteHeaderView);
 
-class IncrementalHeaderView extends Polymer.Element {
-
+class IncrementalHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
@@ -89,20 +86,10 @@ class IncrementalHeaderView extends Polymer.Element {
   static get is() {
     return 'incremental-header-view';
   }
-
-  static get properties() {
-    return Object.assign({}, _coveragePercentageTemplateObject.properties);
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
-  }
 }
 customElements.define(IncrementalHeaderView.is, IncrementalHeaderView);
 
-class AbsoluteContentView extends Polymer.Element {
-
+class AbsoluteContentView extends BaseCoverageComponent {
   static get template() {
     return Polymer.html`
        <style include="coverage-column-styles"></style>
@@ -115,29 +102,12 @@ class AbsoluteContentView extends Polymer.Element {
   }
 
   static get properties() {
-    const properties_ = Object.assign({}, _coveragePercentageContentOverrideObject.properties);
-    properties_.type = { type: String, value: 'absolute', readOnly: true };
-    return properties_;
-  }
-
-  static get observers(){
-    return _coveragePercentageContentOverrideObject.observers;
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
-  }
-
-  _computePercentage(changeNum, patchRange, path, provider) {
-    return _coveragePercentageContentOverrideObject._computePercentage.bind(this)(
-	changeNum, patchRange, path, provider);
+    return {type: {type: String, value: 'absolute', readOnly: true}};
   }
 }
 customElements.define(AbsoluteContentView.is, AbsoluteContentView);
 
-class IncrementalContentView extends Polymer.Element {
-
+class IncrementalContentView extends BaseCoverageComponent {
   static get template() {
     return Polymer.html`
        <style include="coverage-column-styles"></style>
@@ -150,29 +120,12 @@ class IncrementalContentView extends Polymer.Element {
   }
 
   static get properties() {
-    const properties_ = Object.assign({}, _coveragePercentageContentOverrideObject.properties);
-    properties_.type = { type: String, value: 'incremental', readOnly: true };
-    return properties_;
-  }
-
-  static get observers(){
-    return _coveragePercentageContentOverrideObject.observers;
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
-  }
-
-  _computePercentage(changeNum, patchRange, path, provider) {
-    return _coveragePercentageContentOverrideObject._computePercentage.bind(this)(
-	changeNum, patchRange, path, provider);
+    return {type: {type: String, value: 'incremental', readOnly: true}};
   }
 }
 customElements.define(IncrementalContentView.is, IncrementalContentView);
 
-class AbsoluteSummaryView extends Polymer.Element {
-
+class AbsoluteSummaryView extends BaseComponent {
   static get template() {
     return Polymer.html`
        <style include="coverage-column-styles"></style>
@@ -183,21 +136,10 @@ class AbsoluteSummaryView extends Polymer.Element {
   static get is() {
     return 'absolute-summary-view';
   }
-
-  static get properties() {
-    return Object.assign({}, _coveragePercentageTemplateObject.properties);
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
-  }
 }
 customElements.define(AbsoluteSummaryView.is, AbsoluteSummaryView);
 
-
-class IncrementalSummaryView extends Polymer.Element {
-
+class IncrementalSummaryView extends BaseComponent {
   static get template() {
     return Polymer.html`
        <style include="coverage-column-styles"></style>
@@ -207,15 +149,6 @@ class IncrementalSummaryView extends Polymer.Element {
 
   static get is() {
     return 'incremental-summary-view';
-  }
-
-  static get properties() {
-    return Object.assign({}, _coveragePercentageTemplateObject.properties);
-  }
-
-  _computeCoverageClass(shown) {
-    return _coveragePercentageTemplateObject._computeCoverageClass.bind(this)(
-        shown);
   }
 }
 customElements.define(IncrementalSummaryView.is, IncrementalSummaryView);
