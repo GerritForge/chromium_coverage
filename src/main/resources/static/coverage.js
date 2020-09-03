@@ -45,7 +45,7 @@ export class CoverageClient {
 
       // Used to indicate an async fetch of per-project configuration, and it
       // is exepcted to be resolved to an object defined by:
-      // https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage/+/refs/heads/master/src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java#34
+      // https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage/+/HEAD/src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java#34
       configPromise: null,
     }
 
