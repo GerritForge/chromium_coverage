@@ -15,7 +15,7 @@ const CHROMIUM_COVERAGE_HOST = 'https://findit-for-me.appspot.com';
 
 // Dict of gerrit review host and corresponding code coverage service host
 // from which to fetch per-cl coverage data.
-const COVERAGE_SERVICE_HOST = {
+const GERRIT_TO_COVERAGE_HOST = {
   'chromium-review.googlesource.com': CHROMIUM_COVERAGE_HOST,
   'libassistant-internal-review.git.corp.google.com': GOB_COVERAGE_HOST,
   'libassistant-internal-review.googlesource.com': GOB_COVERAGE_HOST,
@@ -24,6 +24,9 @@ const COVERAGE_SERVICE_HOST = {
 // Used to identify host prefixes that should be stripped. This is needed
 // so that the plugin can work in different environments, such as 'canary-'.
 const HOST_PREFIXES = ['canary-', 'polymer1-', 'polymer2-'];
+
+// Bar for low coverage warning,
+const LOW_COVERAGE_WARNING_BAR = 70
 
 /**
  * Provides APIs to fetch and cache coverage data.
@@ -49,7 +52,7 @@ export class CoverageClient {
       configPromise: null,
     }
 
-    // Used to cache coverage date for a patchset.
+    // Used to cache coverage data for a patchset.
     this.coverageData = {
       // Used to validate/invalidate the cache.
       changeInfo: {
@@ -60,7 +63,7 @@ export class CoverageClient {
       },
 
       // Used to indicate that an async fetch of coverage ranges, and it is
-      // expeccted to be resolved to an object with following format:
+      // expected to be resolved to an object with following format:
       // An object whose properties are file paths and corresponding values
       // are arrays of coverage ranges with the following format:
       // {
@@ -187,7 +190,7 @@ export class CoverageClient {
       concise: '1',
     });
 
-    let coverageHost = COVERAGE_SERVICE_HOST[changeInfo.host];
+    let coverageHost = GERRIT_TO_COVERAGE_HOST[changeInfo.host];
     // If the host is not found, use CHROMIUM_COVERAGE_HOST by default.
     if (coverageHost === undefined) {
       coverageHost = CHROMIUM_COVERAGE_HOST;
@@ -465,6 +468,55 @@ export class CoverageClient {
     } catch(error) {
       console.log(error);
       return null;
+    }
+  }
+
+  /**
+   * Surfaces a warning if there are files with low coverage in the patchset.
+   * @param {string} changeNum The change number of the patchset.
+   * @param {string} patchNum The patchset number of the patchset.
+   * @return {object} Returns an object representing the warnings.
+   *  On error, it logs the error and returns null/undefined.
+   */
+  async mayBeShowLowCoverageWarning(changeNum, patchNum) {
+    const changeInfo = {
+      host: this.getNormalizedHost(window.location.host),
+      project: this.parseProjectFromPathName(window.location.pathname),
+      changeNum: parseInt(changeNum),
+      patchNum: parseInt(patchNum),
+    };
+    this.updateCoverageDataIfNecessary(changeInfo);
+    try {
+      const coveragePercentages = await this.coverageData.percentagesPromise;
+      var warnings = [];
+      for (let file of Object.keys(coveragePercentages)) {
+        if(coveragePercentages[file].incremental
+            && coveragePercentages[file].incremental < LOW_COVERAGE_WARNING_BAR){
+          warnings.push({
+            category: 'WARNING',
+            summary: string.concat(
+              `Incremental coverage for ${file} is ${file.incremental} `,
+              `which is < the bar(${LOW_COVERAGE_WARNING_BAR}%). `,
+              `Please add tests for uncovered lines.`)
+          });
+        }
+      }
+      return {
+        responseCode: 'OK',
+        runs: [
+          {
+            checkName: 'Low Coverage Check',
+            status: 'COMPLETED',
+            results: warnings,
+          },
+        ],
+      };
+    } catch(error) {
+      console.log(error);
+      return {
+        responseCode: 'ERROR',
+        errorMessage: `${error}`,
+      };
     }
   }
 
