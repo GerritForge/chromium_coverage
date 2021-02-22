@@ -26,7 +26,7 @@ class GetConfig implements RestReadView<ProjectResource> {
   @Override
   public Response<CoverageConfig> apply(ProjectResource project) throws NoSuchProjectException {
     PluginConfig coverageConfigForProject =
-        this.config.getFromProjectConfig(project.getNameKey(), "code-coverage");
+        this.config.getFromProjectConfig(project.getNameKey(), CoverageModule.KEY_CODE_COVERAGE);
     CoverageConfig result = new CoverageConfig();
     result.enabled = coverageConfigForProject.getBoolean("enabled", false);
     result.endpoint = coverageConfigForProject.getString("endpoint", "");
