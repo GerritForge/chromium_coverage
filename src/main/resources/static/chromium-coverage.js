@@ -57,8 +57,9 @@ Gerrit.install(function(plugin) {
   if(experiments.includes("UiFeature__ci_reboot_checks_coverage")){
     const checksApi = plugin.checks();
     checksApi.register({
-      fetch: (changeNumber, patchsetNumber) =>
-        coverageClient.mayBeShowLowCoverageWarning(changeNumber, patchsetNumber)
+      fetch: (changeData) =>
+        coverageClient.mayBeShowLowCoverageWarning(
+          changeData.changeNumber, changeData.patchsetNumber)
     });
   }
 
