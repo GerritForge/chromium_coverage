@@ -491,10 +491,11 @@ export class CoverageClient {
       var warnings = [];
       for (let file of Object.keys(coveragePercentages)) {
         if(coveragePercentages[file].incremental
-            && coveragePercentages[file].incremental < LOW_COVERAGE_WARNING_BAR){
+           && coveragePercentages[file].incremental < LOW_COVERAGE_WARNING_BAR){
+          msg = "";
           warnings.push({
             category: 'WARNING',
-            summary: string.concat(
+            summary: msg.concat(
               `Incremental coverage for ${file} is ${file.incremental} `,
               `which is < the bar(${LOW_COVERAGE_WARNING_BAR}%). `,
               `Please add tests for uncovered lines.`)
