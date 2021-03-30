@@ -39,99 +39,170 @@ found in the LICENSE file.
   import '../src/main/resources/static/coverage-percentage-views.js';
 
   suite('<coverage percentage views>', () => {
-      test('absolute header view', () => {
-          const element = fixture('absolute-header-view');
-          assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|');
-      });
+    test('absolute header view', () => {
+      const element = fixture('absolute-header-view');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|');
+    });
 
-      test('incremental header view', () => {
-          const element = fixture('incremental-header-view');
-          assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.');
-      });
+    test('incremental header view', () => {
+      const element = fixture('incremental-header-view');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.');
+    });
 
-      test('absolute content view', (done) => {
-          const element = fixture('absolute-content-view');
-          element.changeNum = '12345';
-          element.patchRange = {patchNum: '2'};
-          element.path = 'base/test.cc';
-          element.provider = (changeNum, path, patchNum) => {
-              return {
-                  absolute: 30,
-                  incremental: 75,
-              };
+    test('absolute unit tests header view', () => {
+      const element = fixture('absolute-unit-tests-header-view');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|(Unit)');
+    });
+
+    test('incremental unit tests header view', () => {
+      const element = fixture('incremental-unit-tests-header-view');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.(Unit)');
+    });
+
+    test('absolute content view', (done) => {
+      const element = fixture('absolute-content-view');
+      element.changeNum = '12345';
+      element.patchRange = { patchNum: '2' };
+      element.path = 'base/test.cc';
+      element.provider = (changeNum, path, patchNum) => {
+        return {
+          absolute: 30,
+          incremental: 75,
+        };
+      };
+
+      flush(() => {
+        assert.equal(element.percentageText, '30%');
+        done();
+      });
+    });
+
+    test('absolute content view percentages are not available', (done) => {
+      const element = fixture('absolute-content-view');
+      element.changeNum = '12345';
+      element.patchRange = { patchNum: '2' };
+      element.path = 'base/test.cc';
+      element.provider = (changeNum, path, patchNum) => {
+        return null;
+      };
+
+      flush(() => {
+        assert.equal(element.percentageText, '-');
+        done();
+      });
+    });
+
+    test('incremental content view', (done) => {
+      const element = fixture('incremental-content-view');
+      element.changeNum = '12345';
+      element.patchRange = { patchNum: '2' };
+      element.path = 'base/test.cc';
+      element.provider = (changeNum, path, patchNum) => {
+        return {
+          absolute: 30,
+          incremental: 75,
+        };
+      };
+
+      flush(() => {
+        assert.equal(element.percentageText, '75%');
+        done();
+      });
+    });
+
+    test('incremental content view percentage is not available',
+      (done) => {
+        const element = fixture('incremental-content-view');
+        element.changeNum = '12345';
+        element.patchRange = { patchNum: '2' };
+        element.path = 'base/test.cc';
+        element.provider = (changeNum, path, patchNum) => {
+          return {
+            absolute: 30,
+            incremental: null,
           };
+        };
 
-          flush(() => {
-              assert.equal(element.percentageText, '30%');
-              done();
-          });
+        flush(() => {
+          assert.equal(element.percentageText, '-');
+          done();
+        });
       });
 
-      test('absolute content view percentages are not available', (done) => {
-          const element = fixture('absolute-content-view');
-          element.changeNum = '12345';
-          element.patchRange = {patchNum: '2'};
-          element.path = 'base/test.cc';
-          element.provider = (changeNum, path, patchNum) => {
-              return null;
+    test('absolute unit tests content view',
+      (done) => {
+        const element = fixture('absolute-unit-tests-content-view');
+        element.changeNum = '12345';
+        element.patchRange = { patchNum: '2' };
+        element.path = 'base/test.cc';
+        element.provider = (changeNum, path, patchNum) => {
+          return {
+            absolute: 30,
+            absolute_unit_tests: 75,
           };
+        };
 
-          flush(() => {
-              assert.equal(element.percentageText, '-');
-              done();
-          });
+        flush(() => {
+          assert.equal(element.percentageText, '75%');
+          done();
+        });
       });
 
-      test('incremental content view', (done) => {
-          const element = fixture('incremental-content-view');
-          element.changeNum = '12345';
-          element.patchRange = {patchNum: '2'};
-          element.path = 'base/test.cc';
-          element.provider = (changeNum, path, patchNum) => {
-              return {
-                  absolute: 30,
-                  incremental: 75,
-              };
+    test('absolute unit tests content view percentage is not available',
+      (done) => {
+        const element = fixture('absolute-unit-tests-content-view');
+        element.changeNum = '12345';
+        element.patchRange = { patchNum: '2' };
+        element.path = 'base/test.cc';
+        element.provider = (changeNum, path, patchNum) => {
+          return {
+            absolute: 30,
+            absolute_unit_tests: null,
           };
+        };
 
-          flush(() => {
-              assert.equal(element.percentageText, '75%');
-              done();
-          });
+        flush(() => {
+          assert.equal(element.percentageText, '-');
+          done();
+        });
       });
 
-      test('incremental content view percentages are not available', (done) => {
-          const element = fixture('incremental-content-view');
-          element.changeNum = '12345';
-          element.patchRange = {patchNum: '2'};
-          element.path = 'base/test.cc';
-          element.provider = (changeNum, path, patchNum) => {
-              return null;
+    test('incremental unit tests content view',
+      (done) => {
+        const element = fixture('incremental-unit-tests-content-view');
+        element.changeNum = '12345';
+        element.patchRange = { patchNum: '2' };
+        element.path = 'base/test.cc';
+        element.provider = (changeNum, path, patchNum) => {
+          return {
+            absolute: 30,
+            incremental_unit_tests: 75,
           };
+        };
 
-          flush(() => {
-              assert.equal(element.percentageText, '-');
-              done();
-          });
+        flush(() => {
+          assert.equal(element.percentageText, '75%');
+          done();
+        });
       });
 
-      test('incremental content view incremenal percentage is not available',
-           (done) => {
-               const element = fixture('incremental-content-view');
-               element.changeNum = '12345';
-               element.patchRange = {patchNum: '2'};
-               element.path = 'base/test.cc';
-               element.provider = (changeNum, path, patchNum) => {
-                   return {
-                       absolute: 30,
-                       incremental: null,
-                   };
-               };
+    test('incremental unit tests content view percentage is not available',
+      (done) => {
+        const element = fixture('incremental-unit-tests-content-view');
+        element.changeNum = '12345';
+        element.patchRange = { patchNum: '2' };
+        element.path = 'base/test.cc';
+        element.provider = (changeNum, path, patchNum) => {
+          return {
+            absolute: 30,
+            incremental_unit_tests: null,
+          };
+        };
 
-               flush(() => {
-                   assert.equal(element.percentageText, '-');
-                   done();
-               });
-           });
+        flush(() => {
+          assert.equal(element.percentageText, '-');
+          done();
+        });
+      });
   });
 </script>

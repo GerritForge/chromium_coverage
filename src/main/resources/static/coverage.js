@@ -83,6 +83,10 @@ export class CoverageClient {
       // {
       //   absolute: 99, // Coverage percentage of all lines.
       //   incremental: 75, // Coverage percentages of added lines.
+      //   absolute_unit_tests: 80, // Coverage percentage of all lines
+      //                         (limited to unit tests)
+      //   incremental_unit_tests: 80, // Coverage percentage of added lines
+      //                         (limited to unit tests)
       // };
       percentagesPromise: null,
     };
@@ -343,15 +347,30 @@ export class CoverageClient {
       }
 
       const fileCov = {
-        absolute: Math.round(responseFile.absolute_coverage.covered * 100 /
-                             responseFile.absolute_coverage.total),
+        absolute: null,
         incremental: null,
+        absolute_unit_tests: null,
+        incremental_unit_tests: null,
       };
 
+      if(responseFile.absolute_coverage){
+        fileCov.absolute = Math.round(responseFile.absolute_coverage.covered * 100 /
+          responseFile.absolute_coverage.total);
+      }
       if (responseFile.incremental_coverage) {
         fileCov.incremental = Math.round(
             responseFile.incremental_coverage.covered * 100 /
               responseFile.incremental_coverage.total);
+      }
+      if (responseFile.absolute_unit_tests_coverage) {
+        fileCov.absolute_unit_tests = Math.round(
+            responseFile.absolute_unit_tests_coverage.covered * 100 /
+              responseFile.absolute_unit_tests_coverage.total);
+      }
+      if (responseFile.incremental_unit_tests_coverage ) {
+        fileCov.incremental_unit_tests = Math.round(
+            responseFile.incremental_unit_tests_coverage.covered * 100 /
+              responseFile.incremental_unit_tests_coverage.total);
       }
 
       coveragePercentages[responseFile.path] = fileCov;

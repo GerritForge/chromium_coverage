@@ -33,25 +33,44 @@ Gerrit.install(function(plugin) {
   // See link below to understand how dynamic endpoint reflect in the UI.
   // https://screenshot.googleplex.com/4Df9pEDTsxmpCmi
   plugin.registerDynamicCustomComponent(
-      'change-view-file-list-header',
-      'absolute-header-view').onAttached(onAttached());
+    'change-view-file-list-header',
+    'absolute-header-view').onAttached(onAttached());
   plugin.registerDynamicCustomComponent(
-      'change-view-file-list-header',
-      'incremental-header-view').onAttached(onAttached());
+    'change-view-file-list-header',
+    'incremental-header-view').onAttached(onAttached());
   plugin.registerDynamicCustomComponent(
-      'change-view-file-list-content',
-      'absolute-content-view').onAttached(onAttached(true));
+  'change-view-file-list-header',
+    'absolute-unit-tests-header-view').onAttached(onAttached());
   plugin.registerDynamicCustomComponent(
-      'change-view-file-list-content',
-      'incremental-content-view').onAttached(onAttached(true));
-  plugin.registerDynamicCustomComponent(
-      'change-view-file-list-summary',
-      'absolute-summary-view').onAttached(onAttached());
-  plugin.registerDynamicCustomComponent(
-      'change-view-file-list-summary',
-      'incremental-summary-view').onAttached(onAttached());
+    'change-view-file-list-header',
+    'incremental-unit-tests-header-view').onAttached(onAttached());    
 
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-content',
+    'absolute-content-view').onAttached(onAttached(true));
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-content',
+    'incremental-content-view').onAttached(onAttached(true));
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-content',
+    'absolute-unit-tests-content-view').onAttached(onAttached(true));
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-content',
+    'incremental-unit-tests-content-view').onAttached(onAttached(true));
 
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-summary',
+    'absolute-summary-view').onAttached(onAttached());
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-summary',
+    'incremental-summary-view').onAttached(onAttached());
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-summary',
+    'absolute-unit-tests-summary-view').onAttached(onAttached());
+  plugin.registerDynamicCustomComponent(
+    'change-view-file-list-summary',
+    'incremental-unit-tests-summary-view').onAttached(onAttached());
+  
   // Displays warnings for low coverage.
   const experiments = window.ENABLED_EXPERIMENTS || [];
   if(experiments.includes("UiFeature__ci_reboot_checks_coverage")){

@@ -61,11 +61,39 @@ class BaseCoverageComponent extends BaseComponent {
   }
 }
 
+class AbsoluteUnitTestsHeaderView extends BaseComponent {
+  static get template() {
+    return Polymer.html`
+      <style include="coverage-column-styles"></style>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(Unit Tests) of the whole file">|Cov.|(Unit)</div>
+    `;
+  }
+
+  static get is() {
+    return 'absolute-unit-tests-header-view';
+  }
+}
+customElements.define(AbsoluteUnitTestsHeaderView.is, AbsoluteUnitTestsHeaderView);
+
+class IncrementalUnitTestsHeaderView extends BaseComponent {
+  static get template() {
+    return Polymer.html`
+      <style include="coverage-column-styles"></style>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(Unit Tests) of new lines in the file">ΔCov.(Unit)</div>
+    `;
+  }
+
+  static get is() {
+    return 'incremental-unit-tests-header-view';
+  }
+}
+customElements.define(IncrementalUnitTestsHeaderView.is, IncrementalUnitTestsHeaderView);
+
 class AbsoluteHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage of the whole file">|Cov.|</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(All Tests) of the whole file">|Cov.|</div>
     `;
   }
 
@@ -79,7 +107,7 @@ class IncrementalHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage of new lines in the file">ΔCov.</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(All Tests) of new lines in the file">ΔCov.</div>
     `;
   }
 
@@ -88,6 +116,42 @@ class IncrementalHeaderView extends BaseComponent {
   }
 }
 customElements.define(IncrementalHeaderView.is, IncrementalHeaderView);
+
+class AbsoluteUnitTestsContentView extends BaseCoverageComponent {
+  static get template() {
+    return Polymer.html`
+       <style include="coverage-column-styles"></style>
+       <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
+     `;
+  }
+
+  static get is() {
+    return 'absolute-unit-tests-content-view';
+  }
+
+  static get properties() {
+    return {type: {type: String, value: 'absolute_unit_tests', readOnly: true}};
+  }
+}
+customElements.define(AbsoluteUnitTestsContentView.is, AbsoluteUnitTestsContentView);
+
+class IncrementalUnitTestsContentView extends BaseCoverageComponent {
+  static get template() {
+    return Polymer.html`
+       <style include="coverage-column-styles"></style>
+       <div class$="[[_computeCoverageClass(shown)]]">[[percentageText]]</div>
+     `;
+  }
+
+  static get is() {
+    return 'incremental-unit-tests-content-view';
+  }
+
+  static get properties() {
+    return {type: {type: String, value: 'incremental_unit_tests', readOnly: true}};
+  }
+}
+customElements.define(IncrementalUnitTestsContentView.is, IncrementalUnitTestsContentView);
 
 class AbsoluteContentView extends BaseCoverageComponent {
   static get template() {
@@ -125,6 +189,34 @@ class IncrementalContentView extends BaseCoverageComponent {
 }
 customElements.define(IncrementalContentView.is, IncrementalContentView);
 
+class AbsoluteUnitTestsSummaryView extends BaseComponent {
+  static get template() {
+    return Polymer.html`
+       <style include="coverage-column-styles"></style>
+       <div class$="[[_computeCoverageClass(shown)]]"></div>
+    `;
+  }
+
+  static get is() {
+    return 'absolute-unit-tests-summary-view';
+  }
+}
+customElements.define(AbsoluteUnitTestsSummaryView.is, AbsoluteUnitTestsSummaryView);
+
+class IncrementalUnitTestsSummaryView extends BaseComponent {
+  static get template() {
+    return Polymer.html`
+       <style include="coverage-column-styles"></style>
+       <div class$="[[_computeCoverageClass(shown)]]"></div>
+    `;
+  }
+
+  static get is() {
+    return 'incremental-unit-tests-summary-view';
+  }
+}
+customElements.define(IncrementalUnitTestsSummaryView.is, IncrementalUnitTestsSummaryView);
+
 class AbsoluteSummaryView extends BaseComponent {
   static get template() {
     return Polymer.html`
@@ -152,3 +244,4 @@ class IncrementalSummaryView extends BaseComponent {
   }
 }
 customElements.define(IncrementalSummaryView.is, IncrementalSummaryView);
+
