@@ -511,7 +511,7 @@ export class CoverageClient {
       for (let file of Object.keys(coveragePercentages)) {
         if(coveragePercentages[file].incremental
            && coveragePercentages[file].incremental < LOW_COVERAGE_WARNING_BAR){
-          msg = "";
+          var msg = "";
           warnings.push({
             category: 'WARNING',
             summary: msg.concat(
