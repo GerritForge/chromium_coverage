@@ -534,8 +534,10 @@ export class CoverageClient {
     } catch(error) {
       console.log(error);
       return {
-        responseCode: 'ERROR',
-        errorMessage: `${error}`,
+        // TODO: Make sure that a repo not being supported is not treated as an
+        // error. And then report realy errors as ERROR.
+        responseCode: 'OK',
+        runs: [],
       };
     }
   }
