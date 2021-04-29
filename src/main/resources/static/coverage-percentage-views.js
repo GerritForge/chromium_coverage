@@ -65,7 +65,7 @@ class AbsoluteUnitTestsHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(Unit Tests) of the whole file">|Cov.|(Unit)</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(Unit Tests) of the whole file">|Cov|(U)</div>
     `;
   }
 
@@ -79,7 +79,7 @@ class IncrementalUnitTestsHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(Unit Tests) of new lines in the file">ΔCov.(Unit)</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(Unit Tests) of new lines in the file">ΔCov(U)</div>
     `;
   }
 
@@ -93,7 +93,7 @@ class AbsoluteHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(All Tests) of the whole file">|Cov.|</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Absolute coverage percentage(All Tests) of the whole file">|Cov|</div>
     `;
   }
 
@@ -107,7 +107,7 @@ class IncrementalHeaderView extends BaseComponent {
   static get template() {
     return Polymer.html`
       <style include="coverage-column-styles"></style>
-      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(All Tests) of new lines in the file">ΔCov.</div>
+      <div class$="[[_computeCoverageClass(shown)]]" title="Incremental coverage percentage(All Tests) of new lines in the file">ΔCov</div>
     `;
   }
 

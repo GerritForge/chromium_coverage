@@ -41,22 +41,22 @@ found in the LICENSE file.
   suite('<coverage percentage views>', () => {
     test('absolute header view', () => {
       const element = fixture('absolute-header-view');
-      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov|');
     });
 
     test('incremental header view', () => {
       const element = fixture('incremental-header-view');
-      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov');
     });
 
     test('absolute unit tests header view', () => {
       const element = fixture('absolute-unit-tests-header-view');
-      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov.|(Unit)');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), '|Cov|(U)');
     });
 
     test('incremental unit tests header view', () => {
       const element = fixture('incremental-unit-tests-header-view');
-      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov.(Unit)');
+      assert.equal(element.shadowRoot.querySelector('div').textContent.trim(), 'ΔCov(U)');
     });
 
     test('absolute content view', (done) => {
