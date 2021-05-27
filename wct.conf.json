@@ -2,7 +2,16 @@
   "suites": ["test"],
   "plugins": {
     "local": {
-      "browsers": ["chrome"]
+      "browsers": ["chrome"],
+      "browserOptions": {
+        "chrome": [
+          "headless",
+          "disable-gpu"
+        ]
+      }
     }
-  }
+  },
+  "npm": true,
+  "moduleResolution": "node",
+  "wctPackageName": "wct-browser-legacy"
 }

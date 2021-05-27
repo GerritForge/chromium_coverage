@@ -14,13 +14,9 @@ git clone https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage
 
 ### Running the tests
 
-The unit tests of the plugin are [web-component-tester unit tests][1].
-Dependencies are specified in bower.json and can be installed by running
-`bower install` in this directory. This requires [bower to be
-installed](https://bower.io/#install-bower).
-
-To run the tests, run `wct` from this directory.  See `wct --help`
-for more options.
+```
+npm run wct-test
+```
 
 ## To use with the local testsite
 
