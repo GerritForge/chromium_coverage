@@ -101,6 +101,8 @@ found in the LICENSE file.
       'base/test.cc': {
         absolute: 30,
         incremental: 75,
+        absolute_unit_tests: null,
+        incremental_unit_tests: null,
       }
     };
 
@@ -215,7 +217,7 @@ found in the LICENSE file.
       assert.deepEqual(sampleCoverageRanges, coverageRanges);
     });
 
-    test.skip('parse coverage percentages', () => {
+    test('parse coverage percentages', () => {
       const coveragePercentages =
           coverageClient.convertResponseJsonToCoveragePercentages(
               samplePercentagesResponse);
@@ -247,8 +249,7 @@ found in the LICENSE file.
       const percentages = await coverageClient.provideCoveragePercentages(
           '12345', 'base/test.cc', '2');
       assert.equal(false, coverageClient.fetchCoverageJsonData.called);
-      assert.deepEqual({absolute: 30, incremental: 75}, percentages);
-
+      assert.deepEqual(sampleCoveragePercentages['base/test.cc'], percentages);
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
       coverageClient.fetchCoverageJsonData.restore();
@@ -275,7 +276,7 @@ found in the LICENSE file.
       coverageClient.fetchCoverageJsonData.restore();
     });
 
-    test.skip('coverage percentages are not cached', async () => {
+    test('coverage percentages are not cached', async () => {
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'parseProjectFromPathName');
       sinon.stub(coverageClient, 'fetchCoverageJsonData');
@@ -288,14 +289,14 @@ found in the LICENSE file.
           '12345', 'base/test.cc', '2')
       assert.deepEqual(sampleChangeInfo,
                        coverageClient.coverageData.changeInfo);
-      assert.deepEqual({absolute: 30, incremental: 75}, percentages);
+      assert.deepEqual(sampleCoveragePercentages['base/test.cc'], percentages);
 
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
       coverageClient.fetchCoverageJsonData.restore();
     });
 
-    test.skip('incremental percentage is not available', async () => {
+    test('incremental percentage is not available', async () => {
       const response = {
         data: {
           files: [
@@ -323,7 +324,9 @@ found in the LICENSE file.
           '12345', 'base/test.cc', '2')
       assert.deepEqual(sampleChangeInfo,
                        coverageClient.coverageData.changeInfo);
-      assert.deepEqual({absolute: 30, incremental: null}, percentages);
+      assert.deepEqual({absolute: 30, incremental: null,
+                        absolute_unit_tests: null,
+                        incremental_unit_tests: null}, percentages);
 
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
@@ -448,7 +451,7 @@ found in the LICENSE file.
       coverageClient.fetchCoveragePercentages.restore();
     })
 
-    test.skip('show low incremental coverage warning', async () => {
+    test('show low incremental coverage warning', async () => {
       sinon.stub(coverageClient, 'getNormalizedHost');
       sinon.stub(coverageClient, 'parseProjectFromPathName');
       coverageClient.getNormalizedHost.returns(sampleChangeInfo.host);
@@ -468,9 +471,9 @@ found in the LICENSE file.
 
       var response = await coverageClient.mayBeShowLowCoverageWarning(
         sampleChangeInfo.changeNum, sampleChangeInfo.patchNum);
-
-      assert.equal(response.results.length, 1);
-      assert.equal(response.results[0].category, 'WARNING');
+      assert.equal(response.runs.length,1);
+      assert.equal(response.runs[0].results.length, 1);
+      assert.equal(response.runs[0].results[0].category, 'WARNING');
 
       coverageClient.getNormalizedHost.restore();
       coverageClient.parseProjectFromPathName.restore();
