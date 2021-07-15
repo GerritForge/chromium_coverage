@@ -19,3 +19,5 @@ styleElement.innerHTML =
      </style>
   </template>`;
 styleElement.register('coverage-column-styles');
+
+export {};
