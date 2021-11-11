@@ -1,0 +1,11 @@
+
+{
+  "extends": "../../tsconfig-plugins-base.json",
+  "compilerOptions": {
+    "outDir": "../../../.ts-out/plugins/code-coverage/web",
+    "target": "es2020"
+  },
+  "include": [
+    "**/*"
+  ]
+}

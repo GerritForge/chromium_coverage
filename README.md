@@ -15,12 +15,18 @@ git clone https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage
 ### Running the tests
 
 ```
-npm run wct-test
+bazel test web:karma_test
 ```
 
-## To use with the local testsite
 
-ln -s /path/to/chromium-coverage.html plugins/
+### Testing in Gerrit
+
+For testing the plugin with Gerrit FE Dev Helper build the JavaScript bundle and copy it to the plugins/landingwidget folder:
+
+bazel build plugins/code-coverage/web:code-coverage
+cp -f bazel-bin/plugins/code-coverage/web/code-coverage.js plugins/code-coverage,hs
+and let the Dev Helper redirect from .+/plugins/code-coverage/.* to http://localhost:8081/plugins_/plugins/code-coverage.js
+
 
 ## Project Configuration
 
@@ -34,4 +40,3 @@ add the following config:
   enabled = true
 ```
 
-[1]: https://www.polymer-project.org/1.0/docs/tools/tests
