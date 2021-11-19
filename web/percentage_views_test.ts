@@ -64,7 +64,7 @@ suite('coverage percentage views test', () => {
     acv.changeNum = '12345';
     acv.patchRange = {patchNum: '2'};
     acv.path = 'base/test.cc';
-    acv.provider = async (_changeNum, _path, _patchNum) => {
+    acv.provider = async (changeNum, path, patchNum) => {
       return {
         absolute: 30,
         incremental: 75,
@@ -78,7 +78,7 @@ suite('coverage percentage views test', () => {
     acv.changeNum = '12345';
     acv.patchRange = {patchNum: '2'};
     acv.path = 'base/test.cc';
-    acv.provider = async (_changeNum, _path, _patchNum) => {
+    acv.provider = async (changeNum, path, patchNum) => {
       return {};
     };
     await acv.updateComplete;
@@ -89,7 +89,7 @@ suite('coverage percentage views test', () => {
     icv.changeNum = '12345';
     icv.patchRange = {patchNum: '2'};
     icv.path = 'base/test.cc';
-    icv.provider = async (_changeNum, _path, _patchNum) => {
+    icv.provider = async (changeNum, path, patchNum) => {
       return {
         absolute: 30,
         incremental: 75,
@@ -104,7 +104,7 @@ suite('coverage percentage views test', () => {
     icv.changeNum = '12345';
     icv.patchRange = {patchNum: '2'};
     icv.path = 'base/test.cc';
-    icv.provider = async (_changeNum, _path, __patchNum) => {
+    icv.provider = async (changeNum, path, patchNum) => {
       return {
         absolute: 30,
       };

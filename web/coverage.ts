@@ -59,14 +59,19 @@ declare interface CoverageChangeInfo {
   changeNum: number;
   patchNum: number | undefined;
 }
-
+/**
+ * Description of Code coverage for a file.
+ *
+ * @param absolute Coverage percentage of all lines.
+ * @param incremental Coverage percentages of added lines.
+ * @param absolute_unit_tests Coverage percentage of all lines of unittests.
+ * @param incremental_unit_tests  Coverage percentages of added unitetest lines.
+ */
 export declare interface PercentageData {
-  absolute?: number; // Coverage percentage of all lines.
-  incremental?: number; // Coverage percentages of added lines.
-  absolute_unit_tests?: number; // Coverage percentage of all lines
-  // (limited to unit tests)
-  incremental_unit_tests?: number; // Coverage percentage of added
-  // lines (limited to unit tests)
+  absolute?: number;
+  incremental?: number;
+  absolute_unit_tests?: number;
+  incremental_unit_tests?: number;
 }
 
 declare interface CoverageData {
@@ -94,6 +99,11 @@ declare interface CoverageFilesResponse {
   incremental_unit_tests_coverage?: PctCoverage;
 }
 
+/**
+ * JSON data of coverage.
+ *
+ * @param data Coverage, keyed by file
+ */
 export declare interface CoverageResponse {
   data: {files: CoverageFilesResponse[]};
 }
@@ -460,7 +470,7 @@ export class CoverageClient {
   async provideCoverageRanges(
     changeNum: number,
     path: string,
-    _basePatchNum: number | undefined,
+    basePatchNum: number | undefined,
     patchNum: number | undefined
   ): Promise<CoverageRange[] | undefined> {
     const changeInfo: CoverageChangeInfo = {
@@ -480,7 +490,7 @@ export class CoverageClient {
       } else {
         return undefined;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.info(error);
       return undefined;
     }
@@ -527,8 +537,8 @@ export class CoverageClient {
     const changeInfo: CoverageChangeInfo = {
       host: this.getNormalizedHost(window.location.host),
       project: this.parseProjectFromPathName(window.location.pathname),
-      changeNum: parseInt(changeNum),
-      patchNum: parseInt(patchNum),
+      changeNum: Number(changeNum),
+      patchNum: Number(patchNum),
     };
     this.updateCoverageDataIfNecessary(changeInfo);
     try {
@@ -542,7 +552,7 @@ export class CoverageClient {
       } else {
         return null;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.info(error);
       return null;
     }
@@ -602,7 +612,7 @@ export class CoverageClient {
           },
         ],
       };
-    } catch (error) {
+    } catch (error: unknown) {
       console.info(error);
       return {
         // TODO: Make sure that a repo not being supported is not treated as an
@@ -638,7 +648,7 @@ export class CoverageClient {
     try {
       const config = await this.coverageConfig.configPromise;
       return config !== null && config.enabled;
-    } catch (error) {
+    } catch (error: unknown) {
       console.info(error);
       return false;
     }

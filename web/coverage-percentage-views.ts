@@ -8,7 +8,7 @@ import {css, html, LitElement, PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators';
 import {PercentageData} from './coverage';
 
-const common_css = css`
+const COMMON_CSS = css`
   .coverage-percentage-column {
     display: inline-block;
     min-width: 3.5em;
@@ -50,6 +50,9 @@ declare interface CoverageProvider {
   ): Promise<PercentageData | null>;
 }
 
+/**
+ * Base Coverage Class used for all elements that have data values.
+ */
 export class BaseCoverageComponent extends BaseComponent {
   @property() changeNum = '';
 
@@ -58,9 +61,9 @@ export class BaseCoverageComponent extends BaseComponent {
   @property() path = '';
 
   @property() provider: CoverageProvider = async (
-    _1: string,
-    _2: string,
-    _3: string
+    one: string,
+    two: string,
+    three: string
   ) => null;
 
   @property() percentageText = '-';
@@ -84,7 +87,7 @@ export class BaseCoverageComponent extends BaseComponent {
     super.update(changedProperties);
   }
 
-  protected getPercentageFromData(_pd: PercentageData): number | undefined {
+  protected getPercentageFromData(pd: PercentageData): number | undefined {
     return undefined;
   }
 
@@ -110,9 +113,12 @@ export class BaseCoverageComponent extends BaseComponent {
   }
 }
 
+/**
+ * Component for absolute coverage header.
+ */
 @customElement('absolute-header-view')
 export class AbsoluteHeaderView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`
@@ -126,9 +132,12 @@ export class AbsoluteHeaderView extends BaseComponent {
   }
 }
 
+/**
+ * Component for incremental coverage header.
+ */
 @customElement('incremental-header-view')
 export class IncrementalHeaderView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`
@@ -142,9 +151,12 @@ export class IncrementalHeaderView extends BaseComponent {
   }
 }
 
+/**
+ * Component for absolute coverage data.
+ */
 @customElement('absolute-content-view')
 export class AbsoluteContentView extends BaseCoverageComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   constructor() {
     super();
@@ -162,9 +174,12 @@ export class AbsoluteContentView extends BaseCoverageComponent {
   }
 }
 
+/**
+ * Component for incremental coverage data.
+ */
 @customElement('incremental-content-view')
 export class IncrementalContentView extends BaseCoverageComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   constructor() {
     super();
@@ -182,27 +197,36 @@ export class IncrementalContentView extends BaseCoverageComponent {
   }
 }
 
+/**
+ * Component for absolute summary.
+ */
 @customElement('absolute-summary-view')
 export class AbsoluteSummaryView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`<div class="${this.computeCoverageClass()}"></div> `;
   }
 }
 
+/**
+ * Component for incremental summary.
+ */
 @customElement('incremental-summary-view')
 export class IncrementalSummaryView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`<div class="${this.computeCoverageClass()}"></div> `;
   }
 }
 
+/**
+ * Component for absolute unit tests header.
+ */
 @customElement('absolute-unit-tests-header-view')
 export class AbsoluteUnitTestsHeaderView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`
@@ -216,9 +240,12 @@ export class AbsoluteUnitTestsHeaderView extends BaseComponent {
   }
 }
 
+/**
+ * Component for incremental unit tests header.
+ */
 @customElement('incremental-unit-tests-header-view')
 export class IncrementalUnitTestsHeaderView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html`
@@ -232,9 +259,12 @@ export class IncrementalUnitTestsHeaderView extends BaseComponent {
   }
 }
 
+/**
+ * Component for absolute unit tests data.
+ */
 @customElement('absolute-unit-tests-content-view')
 export class AbsoluteUnitTestsContentView extends BaseCoverageComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   constructor() {
     super();
@@ -252,9 +282,12 @@ export class AbsoluteUnitTestsContentView extends BaseCoverageComponent {
   }
 }
 
+/**
+ * Component for incremental unit tests data.
+ */
 @customElement('incremental-unit-tests-content-view')
 export class IncrementalUnitTestsContentView extends BaseCoverageComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   constructor() {
     super();
@@ -272,18 +305,24 @@ export class IncrementalUnitTestsContentView extends BaseCoverageComponent {
   }
 }
 
+/**
+ * Component for absolute unit tests summary.
+ */
 @customElement('absolute-unit-tests-summary-view')
 export class AbsoluteUnitTestsSummaryView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html` <div class="${this.computeCoverageClass()}"></div> `;
   }
 }
 
+/**
+ * Component for incremental unit tests summary.
+ */
 @customElement('incremental-unit-tests-summary-view')
 export class IncrementalUnitTestsSummaryView extends BaseComponent {
-  static override styles = common_css;
+  static override styles = COMMON_CSS;
 
   override render() {
     return html` <div class="${this.computeCoverageClass()}"></div> `;

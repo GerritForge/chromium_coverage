@@ -24,7 +24,7 @@ window.Gerrit.install((plugin: PluginApi) => {
   plugin.on(EventType.SHOW_CHANGE, coverageClient.prefetchCoverageRanges);
 
   function onAttached(needsProvider = false) {
-    return function (v: HTMLElement) {
+    return (v: HTMLElement) => {
       coverageClient.showPercentageColumns().then((show: boolean) => {
         const view = v as BaseCoverageComponent;
         view.shown = show;

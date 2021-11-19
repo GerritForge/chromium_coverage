@@ -113,7 +113,7 @@ suite('coverage test', () => {
 
   setup(() => {
     fetchStub = sinon.stub(window, 'fetch');
-    coverageClient = new CoverageClient(<PluginApi>(null as unknown));
+    coverageClient = new CoverageClient((null as unknown) as PluginApi);
   });
 
   teardown(() => {
@@ -273,10 +273,10 @@ suite('coverage test', () => {
 
     coverageClient.coverageData = {
       changeInfo: sampleChangeInfo,
-      rangesPromise: new Promise((resolve, _reject) => {
+      rangesPromise: new Promise((resolve, reject) => {
         resolve(sampleCoverageRanges);
       }),
-      percentagesPromise: new Promise((resolve, _reject) => {
+      percentagesPromise: new Promise((resolve, reject) => {
         resolve(sampleCoveragePercentages);
       }),
     };
@@ -459,7 +459,7 @@ suite('coverage test', () => {
       ],
     };
     const fetchPromise1 = new Promise<{[path: string]: CoverageRange[]}>(
-      (resolve, _reject) => {
+      (resolve, reject) => {
         setTimeout(() => {
           resolve(ranges1);
         }, 100);
@@ -509,7 +509,8 @@ suite('coverage test', () => {
     // Even though the first request finishes after the second request, it
     // shouldn't overwrite the coverage ranges promise because the user has
     // moved on to a different change/patchset.
-    await fetchPromise1, fetchPromise2;
+    await fetchPromise1;
+    await fetchPromise2;
     assert.deepEqual(ranges2, await coverageClient.coverageData!.rangesPromise);
 
     gnhStub.restore();
@@ -532,7 +533,7 @@ suite('coverage test', () => {
 
     coverageClient.coverageData = {
       changeInfo: sampleChangeInfo,
-      percentagesPromise: new Promise((resolve, _reject) => {
+      percentagesPromise: new Promise((resolve, reject) => {
         resolve(testCoveragePercentages);
       }),
       rangesPromise: Promise.resolve(null),
@@ -554,7 +555,7 @@ suite('coverage test', () => {
     const ppfpnStub = sinon
       .stub(coverageClient, 'parseProjectFromPathName')
       .returns('chromium/src');
-    const configPromise = new Promise((resolve, _reject) => {
+    const configPromise = new Promise((resolve, reject) => {
       resolve({enabled: true});
     });
     const oldPlugin = coverageClient.plugin;
