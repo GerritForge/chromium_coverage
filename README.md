@@ -21,11 +21,13 @@ bazel test web:karma_test
 
 ### Testing in Gerrit
 
-For testing the plugin with Gerrit FE Dev Helper build the JavaScript bundle and copy it to the plugins/landingwidget folder:
+For testing the plugin with Gerrit FE Dev Helper build the JavaScript bundle and copy it to the `plugins` folder:
 
+```
 bazel build plugins/code-coverage/web:code-coverage
-cp -f bazel-bin/plugins/code-coverage/web/code-coverage.js plugins/code-coverage,hs
-and let the Dev Helper redirect from .+/plugins/code-coverage/.* to http://localhost:8081/plugins_/plugins/code-coverage.js
+cp -f bazel-bin/plugins/code-coverage/web/code-coverage.js plugins/code-coverage.js
+```
+and let the Dev Helper redirect from `.+/plugins/code-coverage/.*` to `http://localhost:8081/plugins_/plugins/code-coverage.js`
 
 
 ## Project Configuration
