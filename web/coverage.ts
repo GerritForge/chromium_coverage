@@ -594,7 +594,8 @@ export class CoverageClient {
           const msg = '';
           warnings.push({
             category: Category.WARNING,
-            summary: msg.concat(
+            summary: `Incremental coverage < ${LOW_COVERAGE_WARNING_BAR}%`,
+            message: msg.concat(
               `Incremental coverage for ${file} is ${incremental} `,
               `which is < the bar(${LOW_COVERAGE_WARNING_BAR}%). `,
               'Please add tests for uncovered lines.'
