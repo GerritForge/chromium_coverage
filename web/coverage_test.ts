@@ -519,7 +519,7 @@ suite('coverage test', () => {
     fcrStub.restore();
   });
 
-  test('show low incremental coverage warning', async () => {
+  test('show low incremental coverage warning(all tests)', async () => {
     const gnhStub = sinon.stub(coverageClient, 'getNormalizedHost');
     const ppfpnStub = sinon.stub(coverageClient, 'parseProjectFromPathName');
     gnhStub.returns(sampleChangeInfo.host);
@@ -527,7 +527,39 @@ suite('coverage test', () => {
     const testCoveragePercentages = {
       'base/test.cc': {
         absolute: 80,
-        incremental: 50,
+        incremental: 74,
+      },
+    };
+
+    coverageClient.coverageData = {
+      changeInfo: sampleChangeInfo,
+      percentagesPromise: new Promise((resolve, reject) => {
+        resolve(testCoveragePercentages);
+      }),
+      rangesPromise: Promise.resolve(null),
+    };
+
+    const response = await coverageClient.mayBeShowLowCoverageWarning(
+      sampleChangeInfo.changeNum,
+      sampleChangeInfo.patchNum
+    );
+    assert.equal(response.runs!.length, 1);
+    assert.equal(response.runs![0]!.results!.length, 1);
+    assert.equal(response.runs![0]!.results![0]!.category, 'WARNING');
+
+    gnhStub.restore();
+    ppfpnStub.restore();
+  });
+
+  test('show low incremental coverage warning(unit tests)', async () => {
+    const gnhStub = sinon.stub(coverageClient, 'getNormalizedHost');
+    const ppfpnStub = sinon.stub(coverageClient, 'parseProjectFromPathName');
+    gnhStub.returns(sampleChangeInfo.host);
+    ppfpnStub.returns(sampleChangeInfo.project);
+    const testCoveragePercentages = {
+      'base/test.cc': {
+        absolute_unit_tests: 80,
+        incremental_unit_tests: 69,
       },
     };
 

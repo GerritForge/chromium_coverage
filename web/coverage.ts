@@ -45,7 +45,9 @@ const GERRIT_TO_COVERAGE_HOST: {[host: string]: string} = {
 const HOST_PREFIXES = ['canary-', 'polymer1-', 'polymer2-'];
 
 // Bar for low coverage warning,
-const LOW_COVERAGE_WARNING_BAR = 70;
+const OVERALL_LOW_COVERAGE_WARNING_BAR = 75;
+
+const UNIT_LOW_COVERAGE_WARNING_BAR = 70;
 
 declare interface CoverageConfig {
   project: string; // Used to validate/invalidate the cache.
@@ -590,14 +592,29 @@ export class CoverageClient {
       const warnings: CheckResult[] = [];
       for (const file of Object.keys(coveragePercentages)) {
         const incremental = coveragePercentages[file].incremental;
-        if (incremental && incremental < LOW_COVERAGE_WARNING_BAR) {
+        if (incremental && incremental < OVERALL_LOW_COVERAGE_WARNING_BAR) {
           const msg = '';
           warnings.push({
             category: Category.WARNING,
-            summary: `Incremental coverage < ${LOW_COVERAGE_WARNING_BAR}%`,
+            summary: `Incremental coverage(All Tests) < ${OVERALL_LOW_COVERAGE_WARNING_BAR}%`,
             message: msg.concat(
-              `Incremental coverage for ${file} is ${incremental} `,
-              `which is < the bar(${LOW_COVERAGE_WARNING_BAR}%). `,
+              `Incremental coverage(All tests) for ${file} is ${incremental} `,
+              `which is < the bar(${OVERALL_LOW_COVERAGE_WARNING_BAR}%). `,
+              'Please add tests for uncovered lines.'
+            ),
+          });
+        }
+        const incremental_unit_tests = 
+            coveragePercentages[file].incremental_unit_tests;
+        if (incremental_unit_tests && 
+            incremental_unit_tests < UNIT_LOW_COVERAGE_WARNING_BAR) {
+          const msg = '';
+          warnings.push({
+            category: Category.WARNING,
+            summary: `Incremental coverage(Unit Tests) < ${UNIT_LOW_COVERAGE_WARNING_BAR}%`,
+            message: msg.concat(
+              `Incremental coverage(Unit Tests) for ${file} is ${incremental} `,
+              `which is < the bar(${UNIT_LOW_COVERAGE_WARNING_BAR}%). `,
               'Please add tests for uncovered lines.'
             ),
           });
