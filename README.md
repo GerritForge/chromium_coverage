@@ -24,12 +24,13 @@ bazel test web:karma_test
 For testing the plugin with Gerrit FE Dev Helper build the JavaScript bundle and copy it to the `plugins` folder:
 
 ```
-bazel build plugins/code-coverage/web:code-coverage
-cp -f bazel-bin/plugins/code-coverage/web/code-coverage.js plugins/code-coverage.js
+bazel build plugins/code-coverage/web:code_coverage
+cp -f bazel-bin/plugins/code-coverage/web/code_coverage.js plugins/chromium-coverage.js
 ```
-and let the Dev Helper redirect from `.+/plugins/code-coverage/.*` to `http://localhost:8081/plugins_/plugins/code-coverage.js`
+and let the Dev Helper redirect from `.+/plugins/code-coverage/.*` to `http://localhost:8081/plugins_/chromium-coverage.js`
 
-
+You might also have to block loading of prod coverage plugin(s) by using a block
+rule similar to `.*polygerrit_assets/549.0/plugins/.*`.
 ## Project Configuration
 
 This plugin is configured via the `project.config` file present in the repo's
