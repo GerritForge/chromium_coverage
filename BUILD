@@ -5,6 +5,7 @@ load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 gerrit_plugin(
     name = "chromium_coverage",
     srcs = glob(["src/main/java/**/*.java"]),
+    dir_name = "code-coverage",
     manifest_entries = [
         "Gerrit-PluginName: chromium-coverage",
         "Gerrit-Module: com.googlesource.chromium.plugins.coverage.CoverageModule",
