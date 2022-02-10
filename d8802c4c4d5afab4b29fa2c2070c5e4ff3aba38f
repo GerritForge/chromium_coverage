@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bd04bec2_7140daf6",
+        "filename": "README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1012541
+      },
+      "writtenOn": "2022-02-10T21:39:51Z",
+      "side": 1,
+      "message": "nit: not needed",
+      "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "34c9e9b6_ea1b4acb",
+        "filename": "src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1012541
+      },
+      "writtenOn": "2022-02-10T21:39:51Z",
+      "side": 1,
+      "message": "What about using COVERAGE_SERVICE_ENDPOINT_SUFFIX here and remove it from the frontend code? In the FE code is only used to build the endpoint, we could get rid of it. Otherwise we have logic to get the endpoint value scattered between backend and FE. WDYT?",
+      "range": {
+        "startLine": 32,
+        "startChar": 69,
+        "endLine": 32,
+        "endChar": 71
+      },
+      "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
