@@ -18,6 +18,24 @@
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "3d326915_ff8ca7fa",
+        "filename": "README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-10T21:43:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd04bec2_7140daf6",
+      "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "34c9e9b6_ea1b4acb",
@@ -31,6 +49,30 @@
       "writtenOn": "2022-02-10T21:39:51Z",
       "side": 1,
       "message": "What about using COVERAGE_SERVICE_ENDPOINT_SUFFIX here and remove it from the frontend code? In the FE code is only used to build the endpoint, we could get rid of it. Otherwise we have logic to get the endpoint value scattered between backend and FE. WDYT?",
+      "range": {
+        "startLine": 32,
+        "startChar": 69,
+        "endLine": 32,
+        "endChar": 71
+      },
+      "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1e1e85eb_a1de1cce",
+        "filename": "src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-10T21:43:02Z",
+      "side": 1,
+      "message": "Yes, good point indeed. However, I would leave that as a follow-up change. *IF* the Chromium team likes my change, then the most natural evolution of it is to leave also the defaults to be managed by the backend.",
+      "parentUuid": "34c9e9b6_ea1b4acb",
       "range": {
         "startLine": 32,
         "startChar": 69,
