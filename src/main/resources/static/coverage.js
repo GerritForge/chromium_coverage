@@ -13,12 +13,16 @@ const GOB_COVERAGE_HOST = 'https://gob-coverage.googleplex.com';
 // The chromium coverage host which is used to process external project.
 const CHROMIUM_COVERAGE_HOST = 'https://findit-for-me.appspot.com';
 
+  // Localhost testing
+const COVERAGE_LOCALHOST = 'http://localhost:8080/static';
+
 // Dict of gerrit review host and corresponding code coverage service host
 // from which to fetch per-cl coverage data.
 const GERRIT_TO_COVERAGE_HOST = {
   'chromium-review.googlesource.com': CHROMIUM_COVERAGE_HOST,
   'libassistant-internal-review.git.corp.google.com': GOB_COVERAGE_HOST,
   'libassistant-internal-review.googlesource.com': GOB_COVERAGE_HOST,
+  'localhost:8080': COVERAGE_LOCALHOST,
 };
 
 // Used to identify host prefixes that should be stripped. This is needed
