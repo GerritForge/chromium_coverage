@@ -81,6 +81,30 @@
       },
       "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1ea37b79_c89be33f",
+        "filename": "src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1012541
+      },
+      "writtenOn": "2022-02-10T21:57:15Z",
+      "side": 1,
+      "message": "makes sense",
+      "parentUuid": "1e1e85eb_a1de1cce",
+      "range": {
+        "startLine": 32,
+        "startChar": 69,
+        "endLine": 32,
+        "endChar": 71
+      },
+      "revId": "d8802c4c4d5afab4b29fa2c2070c5e4ff3aba38f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
