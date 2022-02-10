@@ -29,9 +29,24 @@ This plugin is configured via the `project.config` file present in the repo's
 coverage percentage columns in the file list are hidden to avoid visual
 distraction in unrelated projects, and in order to have them displayed, please
 add the following config:
+
 ```
 [plugin "code-coverage"]
   enabled = true
+```
+
+The code-coverage data is fetched from an external endpoint URL, configurable
+on a per-project basis via the `endpoint` setting in the code-coverage section of
+the `project.config`.
+
+By default, the data is fetched from one of the Chromium project endpoints.
+
+Example for serving the code-coverage data for local development with the
+code-coverage plugin:
+
+```
+[plugin "code-coverage"]
+  endpoint = http://localhost:8080/static/test-code-coverage.json
 ```
 
 [1]: https://www.polymer-project.org/1.0/docs/tools/tests
