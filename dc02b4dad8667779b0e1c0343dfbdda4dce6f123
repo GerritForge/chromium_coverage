@@ -39,6 +39,30 @@
       },
       "revId": "dc02b4dad8667779b0e1c0343dfbdda4dce6f123",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "d78a3108_efb152fc",
+        "filename": "src/main/resources/static/coverage.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-10T22:22:35Z",
+      "side": 1,
+      "message": "I tried with \"endpoint\" in config but it didn\u0027t work, that\u0027s why I\u0027ve opted for going back to config.endpoint.\n\nWhat about:\nconfig \u0026\u0026 config.endpoint \u0026\u0026 config.endpoint.length \u003e 0 ?",
+      "parentUuid": "ac3a2e6b_1a18ef02",
+      "range": {
+        "startLine": 204,
+        "startChar": 22,
+        "endLine": 204,
+        "endChar": 37
+      },
+      "revId": "dc02b4dad8667779b0e1c0343dfbdda4dce6f123",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
