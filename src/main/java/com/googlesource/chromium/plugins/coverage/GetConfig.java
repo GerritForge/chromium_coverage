@@ -6,6 +6,7 @@ package com.googlesource.chromium.plugins.coverage;
 
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestReadView;
+import com.google.gerrit.server.config.PluginConfig;
 import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gerrit.server.project.ProjectResource;
@@ -24,11 +25,11 @@ class GetConfig implements RestReadView<ProjectResource> {
 
   @Override
   public Response<CoverageConfig> apply(ProjectResource project) throws NoSuchProjectException {
+    PluginConfig coverageConfigForProject =
+        this.config.getFromProjectConfig(project.getNameKey(), "code-coverage");
     CoverageConfig result = new CoverageConfig();
-    result.enabled =
-        this.config
-            .getFromProjectConfig(project.getNameKey(), "code-coverage")
-            .getBoolean("enabled", false);
+    result.enabled = coverageConfigForProject.getBoolean("enabled", false);
+    result.endpoint = coverageConfigForProject.getString("endpoint", "");
 
     return Response.ok(result);
   }
@@ -36,5 +37,8 @@ class GetConfig implements RestReadView<ProjectResource> {
   static class CoverageConfig {
     @SerializedName("enabled")
     Boolean enabled;
+
+    @SerializedName("endpoint")
+    String endpoint;
   }
 }
