@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ae332cf9_5b8b9374",
+        "filename": "src/main/resources/static/coverage.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1012541
+      },
+      "writtenOn": "2022-02-10T21:29:48Z",
+      "side": 1,
+      "message": "you could write it like this:\n\nconst endpoint \u003d (\"endpoint\" in config \u0026\u0026 config.endpoint.length \u003e 0) ? config.endpoint : defaultEndpoint;",
+      "range": {
+        "startLine": 208,
+        "startChar": 21,
+        "endLine": 208,
+        "endChar": 106
+      },
+      "revId": "fc331cbebc223c603f24b246707d0ac0ba11655c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
