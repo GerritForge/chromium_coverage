@@ -199,7 +199,10 @@ export class CoverageClient {
     if (coverageHost === undefined) {
       coverageHost = CHROMIUM_COVERAGE_HOST;
     }
-    const endpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
+    const defaultEndpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
+    const config = await this.coverageConfig.configPromise;
+    const endpoint = (config && config.endpoint && config.endpoint.length > 0) ? config.endpoint : defaultEndpoint;
+
     const url = `${endpoint}?${params.toString()}`;
     const response = await fetch(url);
     const responseJson = await response.json();
