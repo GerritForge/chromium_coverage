@@ -16,6 +16,24 @@
       "message": "nit: unneeded",
       "revId": "26a487ace91bbdd6658afca81b5ab06f44876506",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "8008ed03_536b835a",
+        "filename": "src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-10T22:38:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba7b8457_0806a37c",
+      "revId": "26a487ace91bbdd6658afca81b5ab06f44876506",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
     }
   ]
 }
