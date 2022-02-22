@@ -200,6 +200,13 @@ export class CoverageClient {
       coverageHost = CHROMIUM_COVERAGE_HOST;
     }
     const defaultEndpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
+
+    // To minimise the code changes reuse showPercenateColumns method to load per
+    // project config. showPrecentageColumns method name is not precise. This
+    // method load per project configuration and return true if the code coverage
+    // is enabled.
+    await this.showPercentageColumns();
+
     const config = await this.coverageConfig.configPromise;
     const endpoint = (config && config.endpoint && config.endpoint.length > 0) ? config.endpoint : defaultEndpoint;
 
