@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "16d35d05_73b18a42",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-22T21:30:14Z",
+      "side": 1,
+      "message": "Comment is now stale.",
+      "range": {
+        "startLine": 10,
+        "startChar": 19,
+        "endLine": 11,
+        "endChar": 45
+      },
+      "revId": "e35c8f6b779bfb2bc9f644572a51f6fa7fb10181",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "febacfa1_6edb27b0",
+        "filename": "src/main/resources/static/coverage.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-22T21:30:14Z",
+      "side": 1,
+      "message": "nit: unrelated change",
+      "revId": "e35c8f6b779bfb2bc9f644572a51f6fa7fb10181",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
