@@ -52,6 +52,17 @@ export class CoverageClient {
       configPromise: null,
     }
 
+    // Used to cache coverage config for a project.
+    this.fetchCoverageConfig = {
+      // Used to validate/invalidate the cache.
+      project: null,
+
+      // Used to indicate an async fetch of per-project configuration, and it
+      // is exepcted to be resolved to an object defined by:
+      // https://chromium.googlesource.com/infra/gerrit-plugins/code-coverage/+/HEAD/src/main/java/com/googlesource/chromium/plugins/coverage/GetConfig.java#34
+      configPromise: null,
+    }
+
     // Used to cache coverage data for a patchset.
     this.coverageData = {
       // Used to validate/invalidate the cache.
@@ -200,7 +211,16 @@ export class CoverageClient {
       coverageHost = CHROMIUM_COVERAGE_HOST;
     }
     const defaultEndpoint = coverageHost + COVERAGE_SERVICE_ENDPOINT_SUFFIX;
-    const config = await this.coverageConfig.configPromise;
+
+    if (changeInfo.project !== this.fetchCoverageConfig.project) {
+      this.fetchCoverageConfig.project = changeInfo.project;
+      this.fetchCoverageConfig.configPromise = this.plugin.restApi().get(
+          `/projects/${encodeURIComponent(changeInfo.project)}/` +
+            `${encodeURIComponent(this.plugin.getPluginName())}~config`);
+    }
+
+	const config = await this.fetchCoverageConfig.configPromise;
+
     const endpoint = (config && config.endpoint && config.endpoint.length > 0) ? config.endpoint : defaultEndpoint;
 
     const url = `${endpoint}?${params.toString()}`;
