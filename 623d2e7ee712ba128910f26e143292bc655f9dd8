@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aac84aa6_3c2aa0cd",
+        "filename": "src/main/resources/static/coverage.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2022-02-22T21:27:29Z",
+      "side": 1,
+      "message": "nit: replace tabs with spaces",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 0
+      },
+      "revId": "623d2e7ee712ba128910f26e143292bc655f9dd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735"
+    }
+  ]
+}
