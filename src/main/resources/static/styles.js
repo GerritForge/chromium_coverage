@@ -4,8 +4,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
 
-const styleElement = document.createElement('dom-module');
-styleElement.innerHTML =
+const codeCoverageStyleElement = document.createElement('dom-module');
+codeCoverageStyleElement.innerHTML =
   `<template>
      <style>
        .coverage-percentage-column {
@@ -18,6 +18,6 @@ styleElement.innerHTML =
        }
      </style>
   </template>`;
-styleElement.register('coverage-column-styles');
+codeCoverageStyleElement.register('coverage-column-styles');
 
 export {};
